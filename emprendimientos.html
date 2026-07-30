@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="es" style="height: 768px; --vh: 7.68px; overflow: visible; scrollbar-width: none; font-size: clamp(12px, 10.2241px + 0.4228vw, 16px);">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emprendimientos ASODECO</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; margin: 0; overflow-x: hidden; }
+    body { font-family: "Libre Franklin", sans-serif; color: #18324a; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+
+    .app-wrapper {
+    width: 100%;
+    min-height: calc(100 * min(var(--vh, 1vh), 1vh));
+    display: flex;
+    flex-direction: column;
+    }
+
+    .top-band {
+    border-bottom: 5px solid #59b9e9;
+    box-shadow: 0 8px 24px rgba(15, 68, 116, .13);
+    }
+
+    .logo-shell {
+    width: 92px;
+    height: 72px;
+    flex: 0 0 auto;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #fff;
+    }
+
+    .logo-shell img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    }
+
+    .app-tabs {
+    display: inline-flex;
+    max-width: 100%;
+    gap: 5px;
+    padding: 5px;
+    border: 1px solid #cfe0ed;
+    border-radius: 13px;
+    background: rgba(239, 248, 253, .96);
+    box-shadow: 0 8px 18px rgba(18, 71, 113, .08);
+    }
+
+    .tab-button {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 9px;
+    border: 0;
+    border-radius: 9px;
+    padding: 9px 17px;
+    background: transparent;
+    color: #365f7d;
+    font-weight: 700;
+    transition: background .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    }
+
+    .tab-button:hover { transform: translateY(-1px); background: #fff; }
+    .tab-button.active { background: #175a91; box-shadow: 0 5px 13px rgba(23, 90, 145, .24); }
+    .tab-button span { color: #365f7d; }
+    .tab-button.active span { color: #ffffff; }
+    .tab-button svg { color: #365f7d; }
+    .tab-button.active svg { color: #ffffff; }
+    .tab-button svg { width: 18px; height: 18px; }
+    .tab-button span { color: #365f7d; }
+    .tab-button.active span { color: #ffffff; }
+
+    .surface {
+    border: 1px solid #cfe0ed;
+    box-shadow: 0 12px 30px rgba(18, 71, 113, .09);
+    }
+
+    .dashboard-hero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(125deg, #123f73 0%, #175a91 58%, #36a6d8 100%);
+    color: #fff;
+    }
+
+    .dashboard-hero::after {
+    content: "";
+    position: absolute;
+    width: 290px;
+    height: 290px;
+    right: -85px;
+    top: -130px;
+    border-radius: 50%;
+    border: 46px solid rgba(255,255,255,.09);
+    }
+
+    .dashboard-hero::before {
+    content: "";
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    right: 175px;
+    bottom: -115px;
+    border-radius: 50%;
+    background: rgba(89, 185, 233, .22);
+    }
+
+    .hero-copy { position: relative; z-index: 1; }
+
+    .metric-card {
+    position: relative;
+    min-height: 180px;
+    overflow: hidden;
+    border: 1px solid #d5e5ef;
+    border-radius: 18px;
+    padding: 22px;
+    background: rgba(255,255,255,.96);
+    box-shadow: 0 14px 30px rgba(16, 67, 108, .09);
+    transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 36px rgba(16, 67, 108, .14);
+    }
+
+    .metric-card::after {
+    content: "";
+    position: absolute;
+    right: -34px;
+    bottom: -44px;
+    width: 115px;
+    height: 115px;
+    border-radius: 50%;
+    background: var(--metric-wash);
+    }
+
+    .metric-card.sales { --metric-accent: #1888c1; --metric-wash: #dff4fd; }
+    .metric-card.revenue { --metric-accent: #168a82; --metric-wash: #dff6f2; }
+    .metric-card.profit { --metric-accent: #d58a1f; --metric-wash: #fff1d8; }
+    .metric-card.champion { --metric-accent: #345aa8; --metric-wash: #e8edff; }
+
+    .metric-icon {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--metric-accent) 12%, white);
+    color: var(--metric-accent);
+    }
+
+    .metric-icon svg { width: 22px; height: 22px; }
+    .metric-value {
+    position: relative;
+    z-index: 1;
+    margin-top: 18px;
+    color: #123f73;
+    font-size: clamp(1.7rem, 3vw, 2.3rem);
+    font-weight: 800;
+    letter-spacing: -.04em;
+    line-height: 1.08;
+    overflow-wrap: anywhere;
+    }
+
+    .metric-subtitle {
+    position: relative;
+    z-index: 1;
+    margin-top: 9px;
+    color: #5c7488;
+    font-size: .84rem;
+    line-height: 1.5;
+    }
+
+    .metric-kicker {
+    color: #547086;
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    }
+
+    .dashboard-empty {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+    border: 1px dashed #acd5e8;
+    border-radius: 13px;
+    padding: 15px 17px;
+    background: #eff9fd;
+    }
+
+    .dashboard-empty.visible { display: flex; }
+    .dashboard-empty svg { width: 22px; height: 22px; flex: 0 0 auto; color: #268ebd; }
+
+    .toolbar { background: linear-gradient(135deg, #eef8fd 0%, #fff 65%); }
+
+    .action-button {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 9px;
+    padding: 10px 15px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+    }
+
+    .action-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 7px 15px rgba(14, 74, 124, .18);
+    filter: brightness(.98);
+    }
+
+    .tab-button:focus-visible,
+    .action-button:focus-visible,
+    .small-button:focus-visible,
+    .field:focus,
+    .select-field:focus,
+    .modal-button:focus-visible {
+    outline: 3px solid rgba(72, 176, 225, .55);
+    outline-offset: 2px;
+    }
+
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .data-table { width: 100%; min-width: 1160px; border-collapse: separate; border-spacing: 0; }
+    .inventory-table { min-width: 810px; }
+    .products-table { min-width: 710px; }
+
+    .data-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 12px 10px;
+    border-bottom: 2px solid #4bb4e6;
+    text-align: left;
+    line-height: 1.3;
+    letter-spacing: .02em;
+    white-space: normal;
+    }
+
+    .data-table td {
+    padding: 9px 8px;
+    border-bottom: 1px solid #dbe8f1;
+    vertical-align: middle;
+    background: rgba(255, 255, 255, .96);
+    }
+
+    .data-table tbody tr:hover td { background: #f5fbfe; }
+
+    .data-table tfoot td {
+    padding: 12px 10px;
+    border-top: 2px solid #4bb4e6;
+    border-bottom: 0;
+    background: #f4fafd;
+    }
+
+    .footer-label { text-align: right; font-weight: 700; color: #164a72; }
+
+    .field, .select-field {
+    width: 100%;
+    min-width: 84px;
+    border: 1px solid #b9cfdf;
+    border-radius: 7px;
+    padding: 8px 9px;
+    background: #fff;
+    color: #18324a;
+    }
+
+    .name-field { min-width: 160px; }
+
+    .calculated {
+    display: block;
+    min-width: 108px;
+    padding: 8px 9px;
+    border-radius: 7px;
+    background: #edf5fa;
+    color: #164a72;
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+    }
+
+    .profit-negative { color: #a32626; background: #fff0f0; }
+    .checkbox-cell { display: flex; align-items: center; justify-content: center; min-height: 36px; }
+    .checkbox-cell input { width: 18px; height: 18px; cursor: pointer; accent-color: #175a91; }
+    .row-actions { display: flex; min-width: 240px; align-items: center; gap: 6px; }
+
+    .small-button {
+    border: 0;
+    border-radius: 7px;
+    padding: 8px 12px;
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+    transition: transform .15s ease, background .15s ease;
+    }
+
+    .inventory-open { background: #4bb4e6; color: #fff; }
+    .inventory-open:hover { background: #2e9fce; transform: translateY(-1px); }
+    .delete-start { background: #f0f4f8; color: #c23a3a; }
+    .delete-start:hover { background: #e8ecf2; transform: translateY(-1px); }
+
+    .empty-box { display: none; padding: 38px 18px; border-top: 1px solid #d7e6f0; text-align: center; }
+    .empty-box.visible { display: block; }
+
+    .message {
+    display: none;
+    margin-top: 12px;
+    border-left: 4px solid #42acd9;
+    border-radius: 7px;
+    padding: 10px 12px;
+    background: #eaf7fd;
+    color: #174b6b;
+    font-weight: 600;
+    }
+
+    .message.visible { display: block; }
+    .message.error { border-left-color: #c23a3a; background: #fff0f0; color: #8b2424; }
+    .view-hidden { display: none !important; }
+
+    .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(5, 27, 47, .62);
+    }
+
+    .modal-overlay.visible { display: flex; }
+
+    .modal-box {
+    width: min(100%, 420px);
+    border: 1px solid #cfe0ed;
+    border-radius: 14px;
+    padding: 26px 24px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(7, 45, 77, .34);
+    animation: modal-rise .24s ease both;
+    }
+
+    .modal-icon {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 14px;
+    place-items: center;
+    border-radius: 50%;
+    background: #fff0f0;
+    color: #b72f2f;
+    font-size: 25px;
+    font-weight: 800;
+    }
+
+    .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+
+    .modal-button {
+    flex: 1;
+    min-height: 42px;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-weight: 700;
+    transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .modal-button:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(14, 74, 124, .14); }
+    .reveal { animation: rise .38s ease both; }
+
+    @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes modal-rise {
+    from { opacity: 0; transform: translateY(14px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 720px) {
+    .logo-shell { width: 76px; height: 62px; }
+    .app-tabs { display: flex; width: 100%; }
+    .tab-button { flex: 1; justify-content: center; padding-inline: 10px; }
+    .action-button { width: 100%; }
+    .toolbar-actions { width: 100%; }
+    .toolbar-actions > * { flex: 1 1 100%; }
+    .modal-actions { flex-direction: column-reverse; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+ <style>
+*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.mx-auto{margin-left:auto;margin-right:auto}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-3{margin-top:0.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.flex{display:flex}.grid{display:grid}.hidden{display:none}.w-full{width:100%}.min-w-0{min-width:0px}.max-w-2xl{max-width:42rem}.max-w-3xl{max-width:48rem}.max-w-\[1500px\]{max-width:1500px}.flex-1{flex:1 1 0%}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.overflow-hidden{overflow:hidden}.rounded-\[20px\]{border-radius:20px}.rounded-xl{border-radius:0.75rem}.p-4{padding:1rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.py-7{padding-top:1.75rem;padding-bottom:1.75rem}.pt-5{padding-top:1.25rem}.text-center{text-align:center}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.tracking-\[\.14em\]{letter-spacing:.14em}.text-\[\#5b7589\]{--tw-text-opacity:1;color:rgb(91 117 137 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}@media (min-width: 768px){.md\:p-5{padding:1.25rem}.md\:px-7{padding-left:1.75rem;padding-right:1.75rem}.md\:px-9{padding-left:2.25rem;padding-right:2.25rem}.md\:py-7{padding-top:1.75rem;padding-bottom:1.75rem}.md\:py-9{padding-top:2.25rem;padding-bottom:2.25rem}}@media (min-width: 1024px){.lg\:flex-row{flex-direction:row}.lg\:items-center{align-items:center}}@media (min-width: 1280px){.xl\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}}</style></head>
+ <body data-template-id="__page-root" style="background-image: linear-gradient(145deg, rgb(237, 247, 252), rgb(248, 251, 253), rgb(220, 238, 248)) !important; background-clip: border-box !important; background-size: 100vw 100vh !important; min-height: 768px;">
+  <div class="app-wrapper w-full">
+   <header data-template-id="header-section" class="canva-header top-band w-full" style="background-image: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+    <div class="mx-auto flex max-w-[1500px] items-center gap-4 px-4 py-4 md:px-7">
+     <div class="logo-shell"><img data-template-id="company-logo" class="canva-image" loading="lazy" alt="Logo corporativo de ASODECO" src="https://media.canva.com/v2/image-resize/format:PNG/height:150/quality:100/uri:ifs%3A%2F%2FM%2F6908526f-ad30-4cdf-9048-2fdbf39f02af/watermark:F/width:150?csig=AAAAAAAAAAAAAAAAAAAAANBo4d4Cr5-adxREkBr9TKOMP-_ENdf8wHBMhAZCAGvW&amp;exp=1785345061&amp;osig=AAAAAAAAAAAAAAAAAAAAALCQV1Jn3xZuHhcusqkyFHJTb6Fpw8xfabkO9mK_Xjh1&amp;signer=media-rpc&amp;x-canva-quality=micro_thumbnail">
+     </div>
+     <div class="min-w-0">
+    <h1 data-template-id="page-title" class="canva-text font-extrabold leading-tight" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(18, 63, 115) !important; --canva-color: #123f73ff; caret-color: rgb(18, 63, 115) !important; font-family: Libre Franklin !important; font-weight: 800 !important; font-style: normal !important; font-size: 1.875rem !important; letter-spacing: -0.03rem !important;" data-canva-font-size="1.875rem">Emprendimientos ASODECO</h1>
+    <p data-template-id="page-subtitle" class="canva-text mt-1 leading-relaxed" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(82, 113, 138) !important; --canva-color: #52718aff; caret-color: rgb(82, 113, 138) !important; font-family: Libre Franklin !important; font-weight: 400 !important; font-style: normal !important; font-size: 0.875rem !important;">Control sencillo de ingresos, costos, ganancias, inventarios, productos y ventas.</p>
+     </div>
+    </div>
+   </header>
+   <nav class="mx-auto w-full max-w-[1500px] px-3 pt-5 md:px-7" aria-label="Secciones principales">
+    <div class="app-tabs" role="tablist"><button id="dashboard-tab" data-template-id="dashboard-tab" class="canva-tabs tab-button active" type="button" role="tab" aria-selected="true" aria-controls="dashboard-view" data-canva-font-size="0.875rem" style="color: rgb(54, 95, 125) !important; --canva-color: #365f7dff; caret-color: rgb(54, 95, 125) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="layout-dashboard" aria-hidden="true" class="lucide lucide-layout-dashboard"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg> <span data-template-id="dashboard-tab-label" class="tab-label" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">Dashboard</span> </button> <button id="database-tab" data-template-id="database-tab" class="canva-tabs tab-button" type="button" role="tab" aria-selected="false" aria-controls="database-view" data-canva-font-size="0.875rem" style="color: rgb(54, 95, 125) !important; --canva-color: #365f7dff; caret-color: rgb(54, 95, 125) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="briefcase" aria-hidden="true" class="lucide lucide-briefcase"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg> <span data-template-id="database-tab-label" class="tab-label" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">Base de datos</span> </button>
+    </div>
+   </nav>
+   <main class="mx-auto w-full max-w-[1500px] flex-1 px-3 py-5 md:px-7 md:py-7">
+    <section id="dashboard-view" class="reveal" role="tabpanel" aria-labelledby="dashboard-tab">
+     <div data-template-id="dashboard-hero" class="canva-banner dashboard-hero surface rounded-[20px] px-6 py-7 md:px-9 md:py-9" style="background-image: linear-gradient(125deg, rgb(18, 63, 115), rgb(23, 90, 145), rgb(54, 166, 216)) !important; background-clip: border-box !important;">
+    <div class="hero-copy max-w-3xl">
+     <p data-template-id="dashboard-eyebrow" class="canva-text mb-2 font-bold uppercase tracking-[.14em]" data-canva-font-size="0.75rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(191, 233, 251) !important; --canva-color: #bfe9fbff; caret-color: rgb(191, 233, 251) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;">Resumen general</p>
+     <h2 data-template-id="dashboard-heading" class="canva-text font-extrabold leading-tight" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 800 !important; font-style: normal !important; font-size: 1.875rem !important; letter-spacing: -0.03rem !important;" data-canva-font-size="1.875rem">El pulso de los emprendimientos</h2>
+     <p data-template-id="dashboard-help" class="canva-text mt-3 max-w-2xl leading-relaxed" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(229, 245, 252) !important; --canva-color: #e5f5fcff; caret-color: rgb(229, 245, 252) !important; font-family: Libre Franklin !important; font-weight: 400 !important; font-style: normal !important; font-size: 0.875rem !important;">Una vista rápida del desempeño comercial calculada a partir de los productos y ventas registrados.</p>
+    </div>
+     </div>
+     <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <article data-template-id="sold-card" class="canva-card metric-card sales" style="background-image: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="flex items-center justify-between gap-3">
+      <p data-template-id="sold-label" class="canva-text metric-kicker" data-canva-font-size="0.75rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(84, 112, 134) !important; --canva-color: #547086ff; caret-color: rgb(84, 112, 134) !important; font-family: Libre Franklin !important; font-weight: 800 !important; font-style: normal !important; font-size: 0.75rem !important;">Productos vendidos</p>
+      <div class="metric-icon">
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="shopping-bag" aria-hidden="true" class="lucide lucide-shopping-bag"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+      </div>
+     </div>
+     <p id="metric-sold" class="metric-value" aria-live="polite">305</p>
+     <p id="metric-sold-subtitle" class="metric-subtitle">Más vendido: Galleta (249)</p>
+    </article>
+    <article data-template-id="revenue-card" class="canva-card metric-card revenue" style="background-image: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="flex items-center justify-between gap-3">
+      <p data-template-id="revenue-label" class="canva-text metric-kicker" data-canva-font-size="0.75rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(84, 112, 134) !important; --canva-color: #547086ff; caret-color: rgb(84, 112, 134) !important; font-family: Libre Franklin !important; font-weight: 800 !important; font-style: normal !important; font-size: 0.75rem !important;">Ingresos totales</p>
+      <div class="metric-icon">
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="circle-dollar-sign" aria-hidden="true" class="lucide lucide-circle-dollar-sign"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+      </div>
+     </div>
+     <p id="metric-revenue" class="metric-value" aria-live="polite">$962.00</p>
+     <p id="metric-revenue-subtitle" class="metric-subtitle">40 ventas registradas</p>
+    </article>
+    <article data-template-id="profit-card" class="canva-card metric-card profit" style="background-image: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="flex items-center justify-between gap-3">
+      <p data-template-id="profit-label" class="canva-text metric-kicker" data-canva-font-size="0.75rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(84, 112, 134) !important; --canva-color: #547086ff; caret-color: rgb(84, 112, 134) !important; font-family: Libre Franklin !important; font-weight: 800 !important; font-style: normal !important; font-size: 0.75rem !important;">Ganancias totales</p>
+      <div class="metric-icon">
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trending-up" aria-hidden="true" class="lucide lucide-trending-up"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+      </div>
+     </div>
+     <p id="metric-profit" class="metric-value" aria-live="polite">$684.00</p>
+     <p id="metric-profit-subtitle" class="metric-subtitle">Margen global: 71.1%</p>
+    </article>
+    <article data-template-id="business-card" class="canva-card metric-card champion" style="background-image: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="flex items-center justify-between gap-3">
+      <p data-template-id="business-label" class="canva-text metric-kicker" data-canva-font-size="0.75rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(84, 112, 134) !important; --canva-color: #547086ff; caret-color: rgb(84, 112, 134) !important; font-family: Libre Franklin !important; font-weight: 800 !important; font-style: normal !important; font-size: 0.75rem !important;">Más exitoso</p>
+      <div class="metric-icon">
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="award" aria-hidden="true" class="lucide lucide-award"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path></svg>
+      </div>
+     </div>
+     <p id="metric-business" class="metric-value" aria-live="polite">Bisutería</p>
+     <p id="metric-business-subtitle" class="metric-subtitle">Producto líder: Zarcillos Variados Sencillos</p>
+    </article>
+     </div>
+     <div id="dashboard-empty" class="dashboard-empty" role="status">
+    <p data-template-id="dashboard-empty-text" class="canva-text" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(49, 95, 124) !important; --canva-color: #315f7cff; caret-color: rgb(49, 95, 124) !important; font-family: Libre Franklin !important; font-weight: 600 !important; font-style: normal !important; font-size: 0.875rem !important;">El dashboard cobrará vida cuando registre productos y ventas en la pestaña Base de datos.</p>
+     </div>
+    </section>
+    <section id="database-view" class="view-hidden" role="tabpanel" aria-labelledby="database-tab">
+     <section id="business-view" class="reveal" aria-labelledby="business-heading">
+    <div data-template-id="main-toolbar" class="canva-panel surface toolbar rounded-xl p-4 md:p-5" style="background-image: linear-gradient(135deg, rgb(231, 246, 253), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+      <div>
+       <h2 id="business-heading" data-template-id="business-heading" class="canva-text font-bold" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(18, 63, 115) !important; --canva-color: #123f73ff; caret-color: rgb(18, 63, 115) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 1.375rem !important;" data-canva-font-size="1.375rem">Emprendimientos</h2>
+       <p data-template-id="business-help" class="canva-text mt-1" data-canva-font-size="0.8125rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(91, 117, 137) !important; --canva-color: #5b7589ff; caret-color: rgb(91, 117, 137) !important; font-family: Libre Franklin !important; font-weight: 400 !important; font-style: normal !important; font-size: 0.8125rem !important;">Edite directamente las celdas. Los cálculos y el guardado son automáticos.</p>
+      </div>
+      <div class="toolbar-actions flex flex-wrap gap-2"><button id="add-business" data-template-id="add-business-button" class="canva-button action-button" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(23, 90, 145), rgb(23, 90, 145)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">Añadir emprendimiento</button> <button id="export-json" data-template-id="export-button" class="canva-button action-button" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(70, 175, 224), rgb(70, 175, 224)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(8, 47, 77) !important; --canva-color: #082f4dff; caret-color: rgb(8, 47, 77) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">Exportar JSON</button> <button id="import-json" data-template-id="import-button" class="canva-button action-button" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(216, 238, 249), rgb(216, 238, 249)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(22, 77, 117) !important; --canva-color: #164d75ff; caret-color: rgb(22, 77, 117) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">Importar JSON</button> <input id="import-file" class="hidden" type="file" accept=".json,application/json" aria-label="Seleccionar archivo JSON">
+      </div>
+     </div>
+     <div id="business-message" class="message" role="status" aria-live="polite"></div>
+    </div>
+    <div data-template-id="business-table-panel" class="canva-panel surface mt-4 overflow-hidden rounded-xl" style="background-image: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="table-scroll">
+      <table class="data-table" aria-label="Tabla de emprendimientos">
+       <thead id="business-header" data-template-id="business-table-header" class="canva-table" style="background-image: linear-gradient(rgb(24, 79, 124), rgb(24, 79, 124)) !important; background-clip: border-box !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important;">
+        <tr>
+         <th data-template-id="th-business-name" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Emprendimiento</th>
+         <th data-template-id="th-income-products" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Ingresos productos</th>
+         <th data-template-id="th-income-other" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Otros ingresos</th>
+         <th data-template-id="th-income-total" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Ingresos totales</th>
+         <th data-template-id="th-fixed-costs" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Costos fijos</th>
+         <th data-template-id="th-material-costs" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Materiales</th>
+         <th data-template-id="th-employees" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">N.º empleados</th>
+         <th data-template-id="th-pay" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Paga por empleado</th>
+         <th data-template-id="th-employee-total" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Costo empleados</th>
+         <th data-template-id="th-total-costs" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Costos totales</th>
+         <th data-template-id="th-profit" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Ganancia neta</th>
+         <th data-template-id="th-actions" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Acciones</th>
+        </tr>
+       </thead>
+       <tbody id="business-body"><tr data-id="emp_1785163097211_2332"><td><input type="text" data-field="nombre" aria-label="Nombre del emprendimiento" class="field name-field"></td><td><span class="calculated income-products">$691.00</span></td><td><input type="number" data-field="ingresos_otros" aria-label="Otros ingresos" class="field" min="0" step="0.01" inputmode="decimal"></td><td><span class="calculated income-total">$691.00</span></td><td><input type="number" data-field="costos_fijos" aria-label="Costos fijos" class="field" min="0" step="0.01" inputmode="decimal"></td><td><span class="calculated material-costs">$278.00</span></td><td><input type="number" data-field="empleados" aria-label="Cantidad de empleados" class="field" min="0" step="1" inputmode="decimal"></td><td><input type="number" data-field="paga_empleado" aria-label="Paga por empleado" class="field" min="0" step="0.01" inputmode="decimal"></td><td><span class="calculated employee-total">$0.00</span></td><td><span class="calculated total-costs">$278.00</span></td><td><span class="calculated profit-total">$413.00</span></td><td><div class="row-actions"><button type="button" class="small-button inventory-open" data-action="inventory" aria-label="Abrir inventario">Inventario</button><button type="button" class="small-button inventory-open" data-action="products" aria-label="Abrir productos">Productos</button><button type="button" class="small-button inventory-open" data-action="sales" aria-label="Abrir ventas">Ventas</button><button type="button" class="small-button delete-start" data-action="delete-business" aria-label="Borrar emprendimiento">Borrar</button></div></td></tr><tr data-id="emp_1785163879232_18804"><td><input type="text" data-field="nombre" aria-label="Nombre del emprendimiento" class="field name-field"></td><td><span class="calculated income-products">$271.00</span></td><td><input type="number" data-field="ingresos_otros" aria-label="Otros ingresos" class="field" min="0" step="0.01" inputmode="decimal"></td><td><span class="calculated income-total">$271.00</span></td><td><input type="number" data-field="costos_fijos" aria-label="Costos fijos" class="field" min="0" step="0.01" inputmode="decimal"></td><td><span class="calculated material-costs">$0.00</span></td><td><input type="number" data-field="empleados" aria-label="Cantidad de empleados" class="field" min="0" step="1" inputmode="decimal"></td><td><input type="number" data-field="paga_empleado" aria-label="Paga por empleado" class="field" min="0" step="0.01" inputmode="decimal"></td><td><span class="calculated employee-total">$0.00</span></td><td><span class="calculated total-costs">$0.00</span></td><td><span class="calculated profit-total">$271.00</span></td><td><div class="row-actions"><button type="button" class="small-button inventory-open" data-action="inventory" aria-label="Abrir inventario">Inventario</button><button type="button" class="small-button inventory-open" data-action="products" aria-label="Abrir productos">Productos</button><button type="button" class="small-button inventory-open" data-action="sales" aria-label="Abrir ventas">Ventas</button><button type="button" class="small-button delete-start" data-action="delete-business" aria-label="Borrar emprendimiento">Borrar</button></div></td></tr></tbody>
+       <tfoot>
+        <tr id="business-footer-row" class="">
+         <td colspan="9" data-template-id="business-total-label" class="canva-text footer-label" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(22, 74, 114) !important; --canva-color: #164a72ff; caret-color: rgb(22, 74, 114) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;" data-canva-font-size="0.875rem">Totales:</td>
+         <td><span id="business-footer-costs" class="calculated">$278.00</span></td>
+         <td><span id="business-footer-profit" class="calculated">$684.00</span></td>
+         <td></td>
+        </tr>
+       </tfoot>
+      </table>
+     </div>
+     <div id="business-empty" data-template-id="business-empty" class="canva-text empty-box" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(96, 123, 143) !important; --canva-color: #607b8fff; caret-color: rgb(96, 123, 143) !important; font-family: Libre Franklin !important; font-weight: 400 !important; font-style: italic !important; font-size: 0.875rem !important;">Todavía no hay emprendimientos. Use “Añadir emprendimiento” para comenzar.</div>
+    </div>
+     </section>
+     <section id="inventory-view" class="view-hidden reveal" aria-labelledby="inventory-heading">
+    <div data-template-id="inventory-toolbar" class="canva-panel surface toolbar rounded-xl p-4 md:p-5" style="background-image: linear-gradient(135deg, rgb(231, 246, 253), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+      <div><button id="back-button" data-template-id="back-button" class="canva-button action-button mb-3" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(216, 238, 249), rgb(216, 238, 249)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(22, 77, 117) !important; --canva-color: #164d75ff; caret-color: rgb(22, 77, 117) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">← Volver a emprendimientos</button>
+       <h2 id="inventory-heading" data-template-id="inventory-heading" class="canva-text font-bold" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(18, 63, 115) !important; --canva-color: #123f73ff; caret-color: rgb(18, 63, 115) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 1.375rem !important;" data-canva-font-size="1.375rem">Inventario</h2>
+       <p class="mt-1"><span data-template-id="inventory-for-label" class="canva-text font-semibold" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(88, 116, 138) !important; --canva-color: #58748aff; caret-color: rgb(88, 116, 138) !important; font-family: Libre Franklin !important; font-weight: 600 !important; font-style: normal !important; font-size: 0.875rem !important;">Emprendimiento:</span> <strong id="inventory-business-name"></strong></p>
+      </div><button id="add-item" data-template-id="add-item-button" class="canva-button action-button" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(23, 90, 145), rgb(23, 90, 145)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">Añadir artículo</button>
+     </div>
+     <div id="inventory-message" class="message" role="status" aria-live="polite"></div>
+    </div>
+    <div data-template-id="inventory-table-panel" class="canva-panel surface mt-4 overflow-hidden rounded-xl" style="background-image: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="table-scroll">
+      <table class="data-table inventory-table" aria-label="Tabla de inventario">
+       <thead id="inventory-header" data-template-id="inventory-table-header" class="canva-table" style="background-image: linear-gradient(rgb(24, 79, 124), rgb(24, 79, 124)) !important; background-clip: border-box !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important;">
+        <tr>
+         <th data-template-id="th-item-name" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Nombre del artículo</th>
+         <th data-template-id="th-quantity" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Cantidad</th>
+         <th data-template-id="th-unit" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Unidad</th>
+         <th data-template-id="th-unit-cost" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Costo por unidad</th>
+         <th data-template-id="th-item-total" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Costo total</th>
+         <th data-template-id="th-item-actions" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Acciones</th>
+        </tr>
+       </thead>
+       <tbody id="inventory-body"></tbody>
+       <tfoot id="inventory-footer-row">
+        <tr>
+         <td colspan="4" data-template-id="inventory-total-label" class="canva-text footer-label" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(22, 74, 114) !important; --canva-color: #164a72ff; caret-color: rgb(22, 74, 114) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;" data-canva-font-size="0.875rem">Valor total de inventario:</td>
+         <td><span id="inventory-footer-total" class="calculated">$0.00</span></td>
+         <td></td>
+        </tr>
+       </tfoot>
+      </table>
+     </div>
+     <div id="inventory-empty" data-template-id="inventory-empty" class="canva-text empty-box" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(96, 123, 143) !important; --canva-color: #607b8fff; caret-color: rgb(96, 123, 143) !important; font-family: Libre Franklin !important; font-weight: 400 !important; font-style: italic !important; font-size: 0.875rem !important;">Este emprendimiento aún no tiene artículos de inventario.</div>
+    </div>
+     </section>
+     <section id="products-view" class="view-hidden reveal" aria-labelledby="products-heading">
+    <div data-template-id="products-toolbar" class="canva-panel surface toolbar rounded-xl p-4 md:p-5" style="background-image: linear-gradient(135deg, rgb(231, 246, 253), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+      <div><button id="back-button-products" data-template-id="back-button-products" class="canva-button action-button mb-3" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(216, 238, 249), rgb(216, 238, 249)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(22, 77, 117) !important; --canva-color: #164d75ff; caret-color: rgb(22, 77, 117) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">← Volver a emprendimientos</button>
+       <h2 id="products-heading" data-template-id="products-heading" class="canva-text font-bold" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(18, 63, 115) !important; --canva-color: #123f73ff; caret-color: rgb(18, 63, 115) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 1.375rem !important;" data-canva-font-size="1.375rem">Productos</h2>
+       <p class="mt-1"><span data-template-id="products-for-label" class="canva-text font-semibold" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(88, 116, 138) !important; --canva-color: #58748aff; caret-color: rgb(88, 116, 138) !important; font-family: Libre Franklin !important; font-weight: 600 !important; font-style: normal !important; font-size: 0.875rem !important;">Emprendimiento:</span> <strong id="products-business-name"></strong></p>
+      </div><button id="add-product" data-template-id="add-product-button" class="canva-button action-button" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(23, 90, 145), rgb(23, 90, 145)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">Añadir producto</button>
+     </div>
+     <div id="products-message" class="message" role="status" aria-live="polite"></div>
+    </div>
+    <div data-template-id="products-table-panel" class="canva-panel surface mt-4 overflow-hidden rounded-xl" style="background-image: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="table-scroll">
+      <table class="data-table products-table" aria-label="Tabla de productos">
+       <thead id="products-header" data-template-id="products-table-header" class="canva-table" style="background-image: linear-gradient(rgb(24, 79, 124), rgb(24, 79, 124)) !important; background-clip: border-box !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important;">
+        <tr>
+         <th data-template-id="th-product-name" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Nombre del producto</th>
+         <th data-template-id="th-production-cost" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Costo de producción</th>
+         <th data-template-id="th-sale-price" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Precio de venta</th>
+         <th data-template-id="th-stock-inicial" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Stock inicial</th>
+         <th data-template-id="th-stock-actual" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Stock actual</th>
+         <th data-template-id="th-product-actions" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Acciones</th>
+        </tr>
+       </thead>
+       <tbody id="products-body"></tbody>
+      </table>
+     </div>
+     <div id="products-empty" data-template-id="products-empty" class="canva-text empty-box" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(96, 123, 143) !important; --canva-color: #607b8fff; caret-color: rgb(96, 123, 143) !important; font-family: Libre Franklin !important; font-weight: 400 !important; font-style: italic !important; font-size: 0.875rem !important;">Este emprendimiento aún no tiene productos.</div>
+    </div>
+     </section>
+     <section id="sales-view" class="view-hidden reveal" aria-labelledby="sales-heading">
+    <div data-template-id="sales-toolbar" class="canva-panel surface toolbar rounded-xl p-4 md:p-5" style="background-image: linear-gradient(135deg, rgb(231, 246, 253), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+      <div><button id="back-button-sales" data-template-id="back-button-sales" class="canva-button action-button mb-3" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(216, 238, 249), rgb(216, 238, 249)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(22, 77, 117) !important; --canva-color: #164d75ff; caret-color: rgb(22, 77, 117) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">← Volver a emprendimientos</button>
+       <h2 id="sales-heading" data-template-id="sales-heading" class="canva-text font-bold" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(18, 63, 115) !important; --canva-color: #123f73ff; caret-color: rgb(18, 63, 115) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 1.375rem !important;" data-canva-font-size="1.375rem">Ventas</h2>
+       <p class="mt-1"><span data-template-id="sales-for-label" class="canva-text font-semibold" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(88, 116, 138) !important; --canva-color: #58748aff; caret-color: rgb(88, 116, 138) !important; font-family: Libre Franklin !important; font-weight: 600 !important; font-style: normal !important; font-size: 0.875rem !important;">Emprendimiento:</span> <strong id="sales-business-name"></strong></p>
+      </div><button id="add-sale" data-template-id="add-sale-button" class="canva-button action-button" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(23, 90, 145), rgb(23, 90, 145)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">Añadir venta</button>
+     </div>
+     <div id="sales-message" class="message" role="status" aria-live="polite"></div>
+    </div>
+    <div data-template-id="sales-table-panel" class="canva-panel surface mt-4 overflow-hidden rounded-xl" style="background-image: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)) !important; background-clip: border-box !important;">
+     <div class="table-scroll">
+      <table class="data-table inventory-table" aria-label="Tabla de ventas">
+       <thead id="sales-header" data-template-id="sales-table-header" class="canva-table" style="background-image: linear-gradient(rgb(24, 79, 124), rgb(24, 79, 124)) !important; background-clip: border-box !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important;">
+        <tr>
+         <th data-template-id="th-sale-date" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Fecha</th>
+         <th data-template-id="th-customer-name" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Cliente</th>
+         <th data-template-id="th-sale-product" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Producto</th>
+         <th data-template-id="th-sale-quantity" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Cantidad</th>
+         <th data-template-id="th-paid-status" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">¿Pagado?</th>
+         <th data-template-id="th-sale-total-cost" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Costo Total</th>
+         <th data-template-id="th-sale-total-price" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Precio Total</th>
+         <th data-template-id="th-sale-total-profit" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Ganancia</th>
+         <th data-template-id="th-sale-margin" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Margen %</th>
+         <th data-template-id="th-sale-actions" class="canva-text" scope="col" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.75rem !important;" data-canva-font-size="0.75rem">Acciones</th>
+        </tr>
+       </thead>
+       <tbody id="sales-body"></tbody>
+       <tfoot id="sales-footer-row">
+        <tr>
+         <td colspan="7" data-template-id="sales-total-label" class="canva-text footer-label" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(22, 74, 114) !important; --canva-color: #164a72ff; caret-color: rgb(22, 74, 114) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;" data-canva-font-size="0.875rem">Totales:</td>
+         <td><span id="sales-footer-total-price" class="calculated">$0.00</span></td>
+         <td><span id="sales-footer-total-profit" class="calculated">$0.00</span></td>
+         <td></td>
+         <td></td>
+        </tr>
+       </tfoot>
+      </table>
+     </div>
+     <div id="sales-empty" data-template-id="sales-empty" class="canva-text empty-box" data-canva-font-size="0.875rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(96, 123, 143) !important; --canva-color: #607b8fff; caret-color: rgb(96, 123, 143) !important; font-family: Libre Franklin !important; font-weight: 400 !important; font-style: italic !important; font-size: 0.875rem !important;">Este emprendimiento aún no tiene ventas registradas.</div>
+    </div>
+     </section>
+    </section>
+   </main>
+   <footer data-template-id="footer-section" class="canva-footer mt-3 w-full" style="background-image: linear-gradient(rgb(18, 63, 115), rgb(18, 63, 115)) !important; background-clip: border-box !important;">
+    <div class="mx-auto max-w-[1500px] px-4 py-5 text-center">
+     <p data-template-id="footer-text" class="canva-text" data-canva-font-size="0.75rem" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(220, 238, 248) !important; --canva-color: #dceef8ff; caret-color: rgb(220, 238, 248) !important; font-family: Libre Franklin !important; font-weight: 400 !important; font-style: normal !important; font-size: 0.75rem !important;">ASODECO · Gestión local de emprendimientos</p>
+    </div>
+   </footer>
+  </div>
+  <div id="delete-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" aria-describedby="delete-message">
+   <div class="modal-box">
+    <div class="modal-icon" aria-hidden="true">
+     !
+    </div>
+    <h2 id="delete-modal-title" data-template-id="delete-modal-title" class="canva-text text-center font-bold" style="white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(18, 63, 115) !important; --canva-color: #123f73ff; caret-color: rgb(18, 63, 115) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 1.25rem !important;" data-canva-font-size="1.25rem">¿Confirmar borrado?</h2>
+    <p id="delete-message" class="mt-2 text-center leading-relaxed text-[#5b7589]"></p>
+    <div class="modal-actions"><button id="modal-confirm-no" data-template-id="delete-cancel-button" class="canva-button modal-button" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(216, 238, 249), rgb(216, 238, 249)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(22, 77, 117) !important; --canva-color: #164d75ff; caret-color: rgb(22, 77, 117) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">Cancelar</button> <button id="modal-confirm-yes" data-template-id="delete-confirm-button" class="canva-button modal-button" type="button" data-canva-font-size="0.875rem" style="background-image: linear-gradient(rgb(194, 58, 58), rgb(194, 58, 58)) !important; background-clip: border-box !important; white-space: pre-wrap !important; overflow-wrap: normal !important; line-height: normal !important; color: rgb(255, 255, 255) !important; --canva-color: #ffffffff; caret-color: rgb(255, 255, 255) !important; font-family: Libre Franklin !important; font-weight: 700 !important; font-style: normal !important; font-size: 0.875rem !important;">Borrar</button>
+    </div>
+   </div>
+  </div>
+  <script>
+    "use strict";
+
+    var STORAGE_KEY = "asodeco_emprendimientos_v1";
+    var data = { version: 1, emprendimientos: [] };
+    var activeBusinessId = null;
+    var deleteContext = null;
+    var lastFocusedElement = null;
+    var messageTimers = {};
+    var debounceTimers = {};
+
+    
+    showBusinessView(false);
+    setTimeout(function() {
+        selectMainTab("dashboard", false);
+    }, 0);
+
+    function byId(id) { return document.getElementById(id); }
+    function debounceUpdate(key, fn, delay) {
+      if (debounceTimers[key]) { window.clearTimeout(debounceTimers[key]); }
+      debounceTimers[key] = window.setTimeout(fn, delay || 300);
+    }
+    function makeId(prefix) { return prefix + "_" + Date.now() + "_" + Math.floor(Math.random() * 100000); }
+    function numberValue(value) {
+      var parsed = parseFloat(value);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    function safeText(value) { return value === null || typeof value === "undefined" ? "" : String(value); }
+    function money(value) {
+      var amount = numberValue(value);
+      var sign = amount < 0 ? "-" : "";
+      amount = Math.abs(amount);
+      return sign + "$" + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+    function employeeCost(item) { return numberValue(item.empleados) * numberValue(item.paga_empleado); }
+    function netProfit(item, business) {
+      var ingresos_productos = numberValue(item.ingresos_productos);
+      var ingresos_otros = numberValue(item.ingresos_otros);
+      var costos_venta = business ? calculateCostosVenta(business) : 0;
+      return (ingresos_productos + ingresos_otros) - numberValue(item.costos_fijos) -
+        costos_venta - employeeCost(item);
+    }
+    function itemTotal(item) { return numberValue(item.cantidad) * numberValue(item.costo_unidad); }
+
+    function normalizeInventory(items) {
+      var allowed = { "-": true, "kg": true, "g": true, "m": true, "cm": true };
+      items.forEach(function (item, index) {
+        if (!item || typeof item !== "object") { item = {}; items[index] = item; }
+        item.id = item.id || makeId("art");
+        item.nombre = safeText(item.nombre);
+        item.cantidad = numberValue(item.cantidad);
+        item.unidad = allowed[item.unidad] ? item.unidad : "-";
+        item.costo_unidad = numberValue(item.costo_unidad);
+      });
+    }
+
+    function normalizeProducts(items) {
+      items.forEach(function (item, index) {
+        if (!item || typeof item !== "object") { item = {}; items[index] = item; }
+        item.id = item.id || makeId("prd");
+        item.nombre = safeText(item.nombre);
+        item.costo_produccion = numberValue(item.costo_produccion);
+        item.precio_venta = numberValue(item.precio_venta);
+        item.stock_inicial = numberValue(item.stock_inicial);
+      });
+    }
+
+    function normalizeSales(business) {
+      var items = business.ventas;
+      items.forEach(function (item, index) {
+        if (!item || typeof item !== "object") { item = {}; items[index] = item; }
+        item.id = item.id || makeId("vnt");
+        item.fecha = safeText(item.fecha);
+        item.cliente = safeText(item.cliente);
+        item.producto_id = safeText(item.producto_id);
+        item.cantidad = numberValue(item.cantidad);
+        item.pagado = item.pagado === true;
+	item.costo_total = item.total_costo !== undefined ? item.total_costo :
+          findProduct(business, item.producto_id)?.costo_produccion * item.cantidad;
+        item.precio_total = item.total_venta !== undefined ? item.total_venta :
+          findProduct(business, item.producto_id)?.precio_venta * item.cantidad;
+      });
+    }
+
+    function normalizeData(source) {
+      var result = source && typeof source === "object" ? source : {};
+      result.version = result.version || 1;
+      result.emprendimientos = Array.isArray(result.emprendimientos) ? result.emprendimientos : [];
+
+      result.emprendimientos.forEach(function (business, index) {
+        if (!business || typeof business !== "object") {
+        business = {};
+        result.emprendimientos[index] = business;
+        }
+        business.id = business.id || makeId("emp");
+        business.nombre = safeText(business.nombre);
+        business.ingresos_productos = numberValue(business.ingresos_productos);
+        business.ingresos_otros = numberValue(business.ingresos_otros);
+        business.costos_fijos = numberValue(business.costos_fijos);
+        business.empleados = numberValue(business.empleados);
+        business.paga_empleado = numberValue(business.paga_empleado);
+        business.inventario = Array.isArray(business.inventario) ? business.inventario : [];
+        business.productos = Array.isArray(business.productos) ? business.productos : [];
+        business.ventas = Array.isArray(business.ventas) ? business.ventas : [];
+        normalizeInventory(business.inventario);
+        normalizeProducts(business.productos);
+        normalizeSales(business);
+      });
+      return result;
+    }
+
+    function findBusiness(id) {
+      return data.emprendimientos.find(function (item) { return item.id === id; }) || null;
+    }
+    function findProduct(business, id) {
+      return business && business.productos.find(function (item) { return item.id === id; }) || null;
+    }
+    function findInventoryItem(business, id) {
+      return business && business.inventario.find(function (item) { return item.id === id; }) || null;
+    }
+    function findSale(business, id) {
+      return business && business.ventas.find(function (item) { return item.id === id; }) || null;
+    }
+
+    function showMessage(id, text, isError) {
+      var element = byId(id);
+      if (!element) { return; }
+      if (messageTimers[id]) { window.clearTimeout(messageTimers[id]); }
+      element.textContent = text;
+      element.className = "message visible" + (isError ? " error" : "");
+      messageTimers[id] = window.setTimeout(function () { element.className = "message"; }, 4500);
+    }
+
+    function loadData() {
+      try {
+        var raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) { data = normalizeData(JSON.parse(raw)); }
+      } catch (error) {
+        showMessage("business-message", "No fue posible leer los datos guardados.", true);
+      }
+    }
+
+    function saveData(messageTarget) {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        renderDashboard();
+        return true;
+      } catch (error) {
+        showMessage(messageTarget || "business-message", "No fue posible guardar los cambios en este navegador.", true);
+        return false;
+      }
+    }
+
+    function saleValues(business, sale) {
+      var product = findProduct(business, sale.producto_id);
+      var quantity = numberValue(sale.cantidad);
+      var price = product ? numberValue(product.precio_venta) : 0;
+      var cost = product ? numberValue(product.costo_produccion) : 0;
+      return {
+        product: product,
+        quantity: quantity,
+        profit: sale.precio_total - sale.costo_total,
+        margin: price > 0 ? ((price - cost) / price) * 100 : 0
+      };
+    }
+
+    function renderDashboard() {
+      var totalQuantity = 0;
+      var totalRevenue = 0;
+      var totalProfit = 0;
+      var saleCount = 0;
+      var productTotals = {};
+      var winningBusiness = null;
+      var winningProfit = -Infinity;
+
+      data.emprendimientos.forEach(function (business) {
+        var businessProfit = 0;
+        var businessProducts = {};
+
+        business.ventas.forEach(function (sale) {
+        var values = saleValues(business, sale);
+        saleCount += 1;
+        totalQuantity += values.quantity;
+        totalRevenue += values.revenue;
+        totalProfit += values.profit;
+        businessProfit += values.profit;
+
+        if (values.product) {
+          var productId = business.id + "::" + values.product.id;
+          productTotals[productId] = productTotals[productId] || { name: values.product.nombre || "Producto sin nombre", quantity: 0 };
+          productTotals[productId].quantity += values.quantity;
+          businessProducts[values.product.id] = businessProducts[values.product.id] || { name: values.product.nombre || "Producto sin nombre", quantity: 0 };
+          businessProducts[values.product.id].quantity += values.quantity;
+        }
+        });
+
+        if (business.ventas.length && businessProfit > winningProfit) {
+        var bestProduct = null;
+        Object.keys(businessProducts).forEach(function (key) {
+          if (!bestProduct || businessProducts[key].quantity > bestProduct.quantity) {
+            bestProduct = businessProducts[key];
+          }
+        });
+        winningProfit = businessProfit;
+        winningBusiness = {
+          name: business.nombre || "Emprendimiento sin nombre",
+          product: bestProduct
+        };
+        }
+      });
+
+      var topProduct = null;
+      Object.keys(productTotals).forEach(function (key) {
+        if (!topProduct || productTotals[key].quantity > topProduct.quantity) {
+        topProduct = productTotals[key];
+        }
+      });
+
+      byId("metric-sold").textContent = String(totalQuantity);
+      byId("metric-sold-subtitle").textContent = topProduct
+        ? "Más vendido: " + topProduct.name + " (" + topProduct.quantity + ")"
+        : "Sin ventas registradas";
+      byId("metric-revenue").textContent = money(totalRevenue);
+      byId("metric-revenue-subtitle").textContent = saleCount + (saleCount === 1 ? " venta registrada" : " ventas registradas");
+      byId("metric-profit").textContent = money(totalProfit);
+      byId("metric-profit").className = "metric-value" + (totalProfit < 0 ? " text-red-700" : "");
+      byId("metric-profit-subtitle").textContent = "Margen global: " + (totalRevenue > 0 ? (totalProfit / totalRevenue * 100).toFixed(1) : "0.0") + "%";
+      byId("metric-business").textContent = winningBusiness ? winningBusiness.name : "Sin datos";
+      byId("metric-business-subtitle").textContent = winningBusiness && winningBusiness.product
+        ? "Producto líder: " + winningBusiness.product.name
+        : "Registre ventas para comparar emprendimientos";
+      byId("dashboard-empty").className = "dashboard-empty" + (saleCount ? "" : " visible");
+    }
+    
+    function renderDashboardFooter() {
+      var costs = 0;
+      var profit = 0;
+      data.emprendimientos.forEach(function (item) {
+        var business = findBusiness(item.id);
+        var ingresos_productos = 0;
+        if (business) {
+        business.ventas.forEach(function (sale) {
+          var values = saleValues(business, sale);
+          ingresos_productos += values.revenue;
+        });
+        }
+        var ingresos_otros = numberValue(item.ingresos_otros);
+        var ingresos_total = ingresos_productos + ingresos_otros;
+        var costos_venta = business ? calculateCostosVenta(business) : 0;
+        var employee_cost = employeeCost(item);
+        var totalCosts = numberValue(item.costos_fijos) + costos_venta + employee_cost;
+        var itemProfit = ingresos_total - totalCosts;
+        costs += totalCosts;
+        profit += itemProfit;
+      });
+      byId("business-footer-costs").textContent = money(costs);
+      byId("business-footer-profit").textContent = money(profit);
+      byId("business-footer-profit").className = "calculated" + (profit < 0 ? " profit-negative" : "");
+    }
+
+    function selectMainTab(tabName, focusTab) {
+      var dashboardActive = tabName === "dashboard";
+      byId("dashboard-view").className = dashboardActive ? "reveal" : "view-hidden";
+      byId("database-view").className = dashboardActive ? "view-hidden" : "reveal";
+      byId("dashboard-tab").classList.toggle("active", dashboardActive);
+      byId("database-tab").classList.toggle("active", !dashboardActive);
+      byId("dashboard-tab").setAttribute("aria-selected", String(dashboardActive));
+      byId("database-tab").setAttribute("aria-selected", String(!dashboardActive));
+
+      if (dashboardActive) {
+        renderDashboard();
+        window.location.hash = "dashboard";
+      } else {
+        showBusinessView(false);
+        window.location.hash = "datos";
+      }
+      if (focusTab) { byId(dashboardActive ? "dashboard-tab" : "database-tab").focus(); }
+    }
+
+    function closestRow(element) {
+      while (element && element.tagName !== "TR") { element = element.parentNode; }
+      return element;
+    }
+    function closestButton(element) {
+      while (element && element.tagName !== "BUTTON" && element.tagName !== "TR") { element = element.parentNode; }
+      return element && element.tagName === "BUTTON" ? element : null;
+    }
+    function makeCell(content) {
+      var td = document.createElement("td");
+      if (content) { td.appendChild(content); }
+      return td;
+    }
+    function makeInput(type, value, field, label) {
+      var input = document.createElement("input");
+      input.type = type;
+      input.value = safeText(value);
+      input.dataset.field = field;
+      input.setAttribute("aria-label", label);
+      input.className = "field" + (field === "nombre" ? " name-field" : "");
+      if (type === "number") {
+        input.min = "0";
+        input.step = field === "empleados" || field === "cantidad" ? "1" : "0.01";
+        input.inputMode = "decimal";
+      }
+      return input;
+    }
+    function makeButton(text, className, action, label) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = className;
+      button.dataset.action = action;
+      button.setAttribute("aria-label", label || text);
+      button.textContent = text;
+      return button;
+    }
+
+    function buildBusinessRow(item) {
+      var row = document.createElement("tr");
+      row.dataset.id = item.id;
+      [
+        makeInput("text", item.nombre, "nombre", "Nombre del emprendimiento")
+      ].forEach(function (field) { row.appendChild(makeCell(field)); });
+
+      var ingresos_productos_span = document.createElement("span");
+      ingresos_productos_span.className = "calculated income-products";
+      row.appendChild(makeCell(ingresos_productos_span));
+
+      var ingresos_otros_input = makeInput("number", item.ingresos_otros, "ingresos_otros", "Otros ingresos");
+      ingresos_otros_input.disabled = false;
+      row.appendChild(makeCell(ingresos_otros_input));
+
+      var ingresos_total_span = document.createElement("span");
+      ingresos_total_span.className = "calculated income-total";
+      row.appendChild(makeCell(ingresos_total_span));
+
+      var costos_fijos_input = makeInput("number", item.costos_fijos, "costos_fijos", "Costos fijos");
+      costos_fijos_input.disabled = false;
+      row.appendChild(makeCell(costos_fijos_input));
+
+      var costos_venta_span = document.createElement("span");
+      costos_venta_span.className = "calculated material-costs";
+      row.appendChild(makeCell(costos_venta_span));
+
+      [
+        makeInput("number", item.empleados, "empleados", "Cantidad de empleados"),
+        makeInput("number", item.paga_empleado, "paga_empleado", "Paga por empleado")
+      ].forEach(function (field) { row.appendChild(makeCell(field)); });
+
+      ["employee-total", "total-costs", "profit-total"].forEach(function (className) {
+        var span = document.createElement("span");
+        span.className = "calculated " + className;
+        row.appendChild(makeCell(span));
+      });
+
+      var actions = document.createElement("div");
+      actions.className = "row-actions";
+      actions.appendChild(makeButton("Inventario", "small-button inventory-open", "inventory", "Abrir inventario"));
+      actions.appendChild(makeButton("Productos", "small-button inventory-open", "products", "Abrir productos"));
+      actions.appendChild(makeButton("Ventas", "small-button inventory-open", "sales", "Abrir ventas"));
+      actions.appendChild(makeButton("Borrar", "small-button delete-start", "delete-business", "Borrar emprendimiento"));
+      row.appendChild(makeCell(actions));
+      updateBusinessRow(row, item);
+      return row;
+    }
+
+    function calculateProductCosts(business) {
+      var totalProductCost = 0;
+      business.productos.forEach(function (product) {
+        totalProductCost += numberValue(product.costo_produccion);
+      });
+      return totalProductCost;
+    }
+
+    function calculateCostosVenta(business) {
+      var totalCostosVenta = 0;
+      business.ventas.forEach(function (sale) {
+        var values = saleValues(business, sale);
+        totalCostosVenta += values.quantity * numberValue(values.product ? values.product.costo_produccion : 0);
+      });
+      return totalCostosVenta;
+    }
+
+    function updateBusinessRow(row, item) {
+      var business = findBusiness(item.id);
+      var ingresos_productos = 0;
+      if (business) {
+        business.ventas.forEach(function (sale) {
+        var values = saleValues(business, sale);
+        ingresos_productos += values.revenue;
+        });
+      }
+      var ingresos_otros = numberValue(item.ingresos_otros);
+      var ingresos_total = ingresos_productos + ingresos_otros;
+      var costos_venta = business ? calculateCostosVenta(business) : 0;
+      var employee_cost = employeeCost(item);
+      var totalCosts = numberValue(item.costos_fijos) + costos_venta + employee_cost;
+      var profit = ingresos_total - totalCosts;
+      
+      row.querySelector(".income-products").textContent = money(ingresos_productos);
+      row.querySelector(".income-total").textContent = money(ingresos_total);
+      row.querySelector(".material-costs").textContent = money(costos_venta);
+      row.querySelector(".employee-total").textContent = money(employee_cost);
+      row.querySelector(".total-costs").textContent = money(totalCosts);
+      row.querySelector(".profit-total").textContent = money(profit);
+      row.querySelector(".profit-total").className = "calculated profit-total" + (profit < 0 ? " profit-negative" : "");
+    }
+
+    function renderBusinesses() {
+      var body = byId("business-body");
+      var existing = {};
+      Array.prototype.forEach.call(body.children, function (row) { existing[row.dataset.id] = row; });
+
+      data.emprendimientos.forEach(function (item) {
+        var row = existing[item.id];
+        if (!row) { body.appendChild(buildBusinessRow(item)); }
+        else { updateBusinessRow(row, item); delete existing[item.id]; }
+      });
+      Object.keys(existing).forEach(function (id) { existing[id].remove(); });
+
+      var hasData = data.emprendimientos.length > 0;
+      byId("business-header").className = hasData ? "canva-table" : "canva-table view-hidden";
+      byId("business-footer-row").className = hasData ? "" : "view-hidden";
+      byId("business-empty").className = "canva-text empty-box" + (hasData ? "" : " visible");
+
+      renderDashboardFooter();
+    }
+
+    function addBusiness() {
+      var item = {
+        id: makeId("emp"), nombre: "", ingresos_productos: 0, ingresos_otros: 0, costos_fijos: 0,
+        empleados: 0, paga_empleado: 0,
+        inventario: [], productos: [], ventas: []
+      };
+      data.emprendimientos.push(item);
+      saveData("business-message");
+      renderBusinesses();
+      var row = byId("business-body").querySelector('[data-id="' + item.id + '"]');
+      if (row) { row.querySelector('[data-field="nombre"]').focus(); }
+    }
+
+    function businessTableEvent(event) {
+      var row = closestRow(event.target);
+      if (!row) { return; }
+      var item = findBusiness(row.dataset.id);
+      if (!item) { return; }
+
+      var field = event.target.dataset.field;
+      if (field && (event.type === "input" || event.type === "change")) {
+        item[field] = event.target.type === "number" ? numberValue(event.target.value) : event.target.value;
+        updateBusinessRow(row, item);
+        saveData("business-message");
+        renderBusinesses();
+        renderDashboard();
+        return;
+      }
+
+      if (event.type !== "click") { return; }
+      var button = closestButton(event.target);
+      if (!button) { return; }
+      if (button.dataset.action === "inventory") { showInventoryView(item.id); }
+      if (button.dataset.action === "products") { showProductsView(item.id); }
+      if (button.dataset.action === "sales") { showSalesView(item.id); }
+      if (button.dataset.action === "delete-business") {
+        showDeleteModal({
+        type: "business",
+        id: item.id,
+        message: "¿Desea borrar el emprendimiento “" + (item.nombre || "sin nombre") + "”?"
+        });
+      }
+    }
+
+    function buildInventoryRow(item) {
+      var row = document.createElement("tr");
+      row.dataset.id = item.id;
+      row.appendChild(makeCell(makeInput("text", item.nombre, "nombre", "Nombre del artículo")));
+      row.appendChild(makeCell(makeInput("number", item.cantidad, "cantidad", "Cantidad")));
+
+      var select = document.createElement("select");
+      select.className = "select-field";
+      select.dataset.field = "unidad";
+      select.setAttribute("aria-label", "Unidad");
+      ["-", "kg", "g", "m", "cm"].forEach(function (unit) {
+        var option = document.createElement("option");
+        option.value = unit;
+        option.textContent = unit;
+        option.selected = item.unidad === unit;
+        select.appendChild(option);
+      });
+      row.appendChild(makeCell(select));
+      row.appendChild(makeCell(makeInput("number", item.costo_unidad, "costo_unidad", "Costo por unidad")));
+
+      var total = document.createElement("span");
+      total.className = "calculated item-total";
+      row.appendChild(makeCell(total));
+
+      var actions = document.createElement("div");
+      actions.className = "row-actions";
+      actions.appendChild(makeButton("Borrar", "small-button delete-start", "delete-item", "Borrar artículo"));
+      row.appendChild(makeCell(actions));
+      total.textContent = money(itemTotal(item));
+      return row;
+    }
+
+    function renderInventory() {
+      var business = findBusiness(activeBusinessId);
+      if (!business) { showBusinessView(); return; }
+      byId("inventory-business-name").textContent = business.nombre || "Emprendimiento sin nombre";
+      var body = byId("inventory-body");
+      body.innerHTML = "";
+      business.inventario.forEach(function (item) { body.appendChild(buildInventoryRow(item)); });
+      var hasData = business.inventario.length > 0;
+      byId("inventory-header").className = hasData ? "canva-table" : "canva-table view-hidden";
+      byId("inventory-footer-row").className = hasData ? "" : "view-hidden";
+      byId("inventory-empty").className = "canva-text empty-box" + (hasData ? "" : " visible");
+      var total = business.inventario.reduce(function (sum, item) { return sum + itemTotal(item); }, 0);
+      byId("inventory-footer-total").textContent = money(total);
+    }
+
+    function addInventoryItem() {
+      var business = findBusiness(activeBusinessId);
+      if (!business) { return; }
+      var item = { id: makeId("art"), nombre: "", cantidad: 0, unidad: "-", costo_unidad: 0 };
+      business.inventario.push(item);
+      saveData("inventory-message");
+      renderInventory();
+      var row = byId("inventory-body").querySelector('[data-id="' + item.id + '"]');
+      if (row) { row.querySelector('[data-field="nombre"]').focus(); }
+    }
+
+    function inventoryTableEvent(event) {
+      var row = closestRow(event.target);
+      var business = findBusiness(activeBusinessId);
+      if (!row || !business) { return; }
+      var item = findInventoryItem(business, row.dataset.id);
+      if (!item) { return; }
+
+      var field = event.target.dataset.field;
+      if (field && (event.type === "input" || event.type === "change")) {
+        item[field] = event.target.type === "number" ? numberValue(event.target.value) : event.target.value;
+        saveData("inventory-message");
+        renderInventory();
+        return;
+      }
+
+      var button = event.type === "click" ? closestButton(event.target) : null;
+      if (button && button.dataset.action === "delete-item") {
+        showDeleteModal({
+        type: "inventory", businessId: activeBusinessId, id: item.id,
+        message: "¿Desea borrar el artículo “" + (item.nombre || "sin nombre") + "”?"
+        });
+      }
+    }
+
+    function buildProductRow(item) {
+      var row = document.createElement("tr");
+      row.dataset.id = item.id;
+      row.appendChild(makeCell(makeInput("text", item.nombre, "nombre", "Nombre del producto")));
+      row.appendChild(makeCell(makeInput("number", item.costo_produccion, "costo_produccion", "Costo de producción")));
+      row.appendChild(makeCell(makeInput("number", item.precio_venta, "precio_venta", "Precio de venta")));
+      row.appendChild(makeCell(makeInput("number", item.stock_inicial, "stock_inicial", "Stock inicial")));
+      
+      var stockActualSpan = document.createElement("span");
+      stockActualSpan.className = "calculated stock-actual";
+      row.appendChild(makeCell(stockActualSpan));
+      
+      var actions = document.createElement("div");
+      actions.className = "row-actions";
+      actions.appendChild(makeButton("Borrar", "small-button delete-start", "delete-product", "Borrar producto"));
+      row.appendChild(makeCell(actions));
+      updateProductRow(row, item);
+      return row;
+    }
+
+    function updateProductRow(row, item) {
+      var business = findBusiness(activeBusinessId);
+      if (!business) { return; }
+      var totalSold = business.ventas.reduce(function (sum, sale) {
+        return sale.producto_id === item.id ? sum + numberValue(sale.cantidad) : sum;
+      }, 0);
+      var stockActual = numberValue(item.stock_inicial) - totalSold;
+      row.querySelector(".stock-actual").textContent = String(stockActual);
+    }
+
+    function renderProducts() {
+      var business = findBusiness(activeBusinessId);
+      if (!business) { showBusinessView(); return; }
+      byId("products-business-name").textContent = business.nombre || "Emprendimiento sin nombre";
+      var body = byId("products-body");
+      body.innerHTML = "";
+      business.productos.forEach(function (item) { 
+        var row = buildProductRow(item);
+        body.appendChild(row);
+      });
+      var hasData = business.productos.length > 0;
+      byId("products-header").className = hasData ? "canva-table" : "canva-table view-hidden";
+      byId("products-empty").className = "canva-text empty-box" + (hasData ? "" : " visible");
+    }
+
+    function addProduct() {
+      var business = findBusiness(activeBusinessId);
+      if (!business) { return; }
+      var item = { id: makeId("prd"), nombre: "", costo_produccion: 0, precio_venta: 0, stock_inicial: 0 };
+      business.productos.push(item);
+      saveData("products-message");
+      renderProducts();
+      renderBusinesses();
+      var row = byId("products-body").querySelector('[data-id="' + item.id + '"]');
+      if (row) { row.querySelector('[data-field="nombre"]').focus(); }
+    }
+
+    function productsTableEvent(event) {
+      var row = closestRow(event.target);
+      var business = findBusiness(activeBusinessId);
+      if (!row || !business) { return; }
+      var item = findProduct(business, row.dataset.id);
+      if (!item) { return; }
+
+      var field = event.target.dataset.field;
+      if (field && (event.type === "input" || event.type === "change")) {
+        item[field] = event.target.type === "number" ? numberValue(event.target.value) : event.target.value;
+        // Update stock actual immediately for real-time feedback
+        updateProductRow(row, item);
+        debounceUpdate("product-" + item.id, function () {
+        saveData("products-message");
+        renderBusinesses();
+        renderDashboard();
+        }, 300);
+        return;
+      }
+
+      var button = event.type === "click" ? closestButton(event.target) : null;
+      if (button && button.dataset.action === "delete-product") {
+        showDeleteModal({
+        type: "product", businessId: activeBusinessId, id: item.id,
+        message: "¿Desea borrar el producto “" + (item.nombre || "sin nombre") + "”?"
+        });
+      }
+    }
+
+    function buildSaleRow(item) {
+      var row = document.createElement("tr");
+      row.dataset.id = item.id;
+      row.appendChild(makeCell(makeInput("date", item.fecha, "fecha", "Fecha de venta")));
+      row.appendChild(makeCell(makeInput("text", item.cliente, "cliente", "Nombre del cliente")));
+
+      var business = findBusiness(activeBusinessId);
+      var select = document.createElement("select");
+      select.className = "select-field";
+      select.dataset.field = "producto_id";
+      select.setAttribute("aria-label", "Producto vendido");
+      var emptyOption = document.createElement("option");
+      emptyOption.value = "";
+      emptyOption.textContent = "-- Seleccionar producto --";
+      select.appendChild(emptyOption);
+      business.productos.forEach(function (product) {
+        var option = document.createElement("option");
+        option.value = product.id;
+        option.textContent = product.nombre || "Producto sin nombre";
+        option.selected = item.producto_id === product.id;
+        select.appendChild(option);
+      });
+      row.appendChild(makeCell(select));
+      row.appendChild(makeCell(makeInput("number", item.cantidad, "cantidad", "Cantidad vendida")));
+
+      var checkboxWrap = document.createElement("div");
+      checkboxWrap.className = "checkbox-cell";
+      var checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.dataset.field = "pagado";
+      checkbox.checked = item.pagado;
+      checkbox.setAttribute("aria-label", "¿Ha pagado?");
+      checkboxWrap.appendChild(checkbox);
+      row.appendChild(makeCell(checkboxWrap));
+
+      row.appendChild(makeCell(makeInput("number", item.costo_total, "costo_total", "Costo total")));
+      row.appendChild(makeCell(makeInput("number", item.precio_total, "precio_total", "Precio total")));
+
+      var values = saleValues(business, item);
+      [money(values.profit), values.margin.toFixed(1) + "%"].forEach(function (text, index) {
+        var span = document.createElement("span");
+        span.className = "calculated" + (index === 1 && values.profit < 0 ? " profit-negative" : "");
+        span.textContent = text;
+        row.appendChild(makeCell(span));
+      });
+
+      var actions = document.createElement("div");
+      actions.className = "row-actions";
+      actions.appendChild(makeButton("Borrar", "small-button delete-start", "delete-sale", "Borrar venta"));
+      row.appendChild(makeCell(actions));
+      return row;
+    }
+
+    function regenerateProductPriceRows() {
+      var business = findBusiness(activeBusinessId);
+      if (!business) { return; }
+      business.productos.forEach(function (product) {
+        var row = byId("products-body").querySelector('[data-id="' + product.id + '"]');
+        if (row) { updateProductRow(row, product); }
+      });
+    }
+
+    function renderSales() {
+      var business = findBusiness(activeBusinessId);
+      if (!business) { showBusinessView(); return; }
+      byId("sales-business-name").textContent = business.nombre || "Emprendimiento sin nombre";
+      var body = byId("sales-body");
+      body.innerHTML = "";
+      business.ventas.forEach(function (item) { body.appendChild(buildSaleRow(item)); });
+      var hasData = business.ventas.length > 0;
+      byId("sales-header").className = hasData ? "canva-table" : "canva-table view-hidden";
+      byId("sales-footer-row").className = hasData ? "" : "view-hidden";
+      byId("sales-empty").className = "canva-text empty-box" + (hasData ? "" : " visible");
+
+      var totals = business.ventas.reduce(function (acc, sale) {
+        var values = saleValues(business, sale);
+        acc.revenue += values.revenue;
+        acc.profit += values.profit;
+        return acc;
+      }, { revenue: 0, profit: 0 });
+      byId("sales-footer-total-price").textContent = money(totals.revenue);
+      byId("sales-footer-total-profit").textContent = money(totals.profit);
+      byId("sales-footer-total-profit").className = "calculated" + (totals.profit < 0 ? " profit-negative" : "");
+    }
+
+    function addSale() {
+      var business = findBusiness(activeBusinessId);
+      if (!business) { return; }
+      var now = new Date();
+      var dateString = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+      var item = { id: makeId("vnt"), fecha: dateString, cliente: "", producto_id: "", cantidad: 0, pagado: false };
+      business.ventas.push(item);
+      saveData("sales-message");
+      renderSales();
+      renderBusinesses();
+      renderDashboard();
+      var row = byId("sales-body").querySelector('[data-id="' + item.id + '"]');
+      if (row) { row.querySelector('[data-field="cliente"]').focus(); }
+    }
+
+    function salesTableEvent(event) {
+      var row = closestRow(event.target);
+      var business = findBusiness(activeBusinessId);
+      if (!row || !business) { return; }
+      var item = findSale(business, row.dataset.id);
+      if (!item) { return; }
+
+      var field = event.target.dataset.field;
+      if (field && (event.type === "input" || event.type === "change")) {
+        item[field] = event.target.type === "checkbox"
+        ? event.target.checked
+        : event.target.type === "number" ? numberValue(event.target.value) : event.target.value;
+        
+        // Update sale row immediately for real-time feedback
+        var values = saleValues(business, item);
+        var cells = row.querySelectorAll("td");
+        if (cells.length >= 8) {
+        cells[7].querySelector("span").textContent = money(values.profit);
+        cells[7].querySelector("span").className = "calculated" + (values.profit < 0 ? " profit-negative" : "");
+        cells[8].querySelector("span").textContent = values.margin.toFixed(1) + "%";
+        }
+        
+        debounceUpdate("sales-" + item.id, function () {
+      	  saveData("sales-message");
+      	  regenerateProductPriceRows();
+      	  renderBusinesses();
+      	  renderDashboard();
+        }, 300);
+        return;
+      }
+
+      var button = event.type === "click" ? closestButton(event.target) : null;
+      if (button && button.dataset.action === "delete-sale") {
+        showDeleteModal({
+        type: "sale", businessId: activeBusinessId, id: item.id,
+        message: "¿Desea borrar esta venta?"
+        });
+      }
+    }
+
+    function showDeleteModal(context) {
+      deleteContext = context;
+      lastFocusedElement = document.activeElement;
+      byId("delete-message").textContent = context.message;
+      byId("delete-modal").classList.add("visible");
+      byId("modal-confirm-no").focus();
+    }
+
+    function hideDeleteModal() {
+      byId("delete-modal").classList.remove("visible");
+      deleteContext = null;
+      if (lastFocusedElement && document.body.contains(lastFocusedElement)) { lastFocusedElement.focus(); }
+    }
+
+    function confirmDelete() {
+      if (!deleteContext) { return; }
+      var context = deleteContext;
+      byId("delete-modal").classList.remove("visible");
+      deleteContext = null;
+
+      if (context.type === "business") {
+        data.emprendimientos = data.emprendimientos.filter(function (item) { return item.id !== context.id; });
+        saveData("business-message");
+        renderBusinesses();
+        showMessage("business-message", "Emprendimiento borrado.", false);
+      } else {
+        var business = findBusiness(context.businessId);
+        if (!business) { return; }
+        if (context.type === "inventory") {
+        business.inventario = business.inventario.filter(function (item) { return item.id !== context.id; });
+        saveData("inventory-message"); renderInventory();
+        showMessage("inventory-message", "Artículo borrado.", false);
+        }
+        if (context.type === "product") {
+        business.productos = business.productos.filter(function (item) { return item.id !== context.id; });
+        business.ventas.forEach(function (sale) {
+          if (sale.producto_id === context.id) { sale.producto_id = ""; }
+        });
+        saveData("products-message"); renderProducts();
+        renderBusinesses();
+        renderDashboard();
+        showMessage("products-message", "Producto borrado.", false);
+        }
+        if (context.type === "sale") {
+        business.ventas = business.ventas.filter(function (item) { return item.id !== context.id; });
+        saveData("sales-message"); renderSales();
+        renderBusinesses();
+        renderDashboard();
+        showMessage("sales-message", "Venta borrada.", false);
+        }
+      }
+    }
+
+    function hideDatabaseSubviews() {
+      ["business-view", "inventory-view", "products-view", "sales-view"].forEach(function (id) {
+        byId(id).className = "view-hidden";
+      });
+    }
+
+    function showBusinessView(focusControl) {
+      activeBusinessId = null;
+      hideDatabaseSubviews();
+      byId("business-view").className = "reveal";
+      renderBusinesses();
+      if (focusControl !== false) { byId("add-business").focus(); }
+    }
+
+    function showInventoryView(id) {
+      activeBusinessId = id;
+      hideDatabaseSubviews();
+      byId("inventory-view").className = "reveal";
+      renderInventory();
+      byId("back-button").focus();
+    }
+
+    function showProductsView(id) {
+      activeBusinessId = id;
+      hideDatabaseSubviews();
+      byId("products-view").className = "reveal";
+      renderProducts();
+      byId("back-button-products").focus();
+    }
+
+    function showSalesView(id) {
+      activeBusinessId = id;
+      hideDatabaseSubviews();
+      byId("sales-view").className = "reveal";
+      renderSales();
+      byId("back-button-sales").focus();
+    }
+
+    function exportJson() {
+      var jsonString = JSON.stringify(data, null, 2);
+      var blob = new Blob([jsonString], { type: "text/plain;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      window.setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+      showMessage("business-message", "JSON abierto en nueva pestaña. Guarda con Ctrl+S o Cmd+S.", false);
+    }
+
+    function importJson(event) {
+      var file = event.target.files && event.target.files[0];
+      if (!file) { return; }
+      var reader = new FileReader();
+      reader.onload = function (loadEvent) {
+        try {
+        var parsed = JSON.parse(loadEvent.target.result);
+        if (!parsed || !Array.isArray(parsed.emprendimientos)) { throw new Error("Formato inválido"); }
+        data = normalizeData(parsed);
+        saveData("business-message");
+        showBusinessView(false);
+        showMessage("business-message", "Datos importados correctamente.", false);
+        } catch (error) {
+        showMessage("business-message", "El archivo no es válido. Debe contener un arreglo “emprendimientos”.", true);
+        }
+        byId("import-file").value = "";
+      };
+      reader.onerror = function () {
+        showMessage("business-message", "No fue posible leer el archivo.", true);
+        byId("import-file").value = "";
+      };
+      reader.readAsText(file);
+    }
+
+    function bindEvents() {
+      byId("dashboard-tab").addEventListener("click", function () { selectMainTab("dashboard", false); });
+      byId("database-tab").addEventListener("click", function () { selectMainTab("database", false); });
+      byId("add-business").addEventListener("click", addBusiness);
+      byId("export-json").addEventListener("click", function () { console.log(data); exportJson(); });
+      byId("import-json").addEventListener("click", function () { byId("import-file").click(); });
+      byId("import-file").addEventListener("change", importJson);
+      byId("back-button").addEventListener("click", showBusinessView);
+      byId("back-button-products").addEventListener("click", showBusinessView);
+      byId("back-button-sales").addEventListener("click", showBusinessView);
+      byId("add-item").addEventListener("click", addInventoryItem);
+      byId("add-product").addEventListener("click", addProduct);
+      byId("add-sale").addEventListener("click", addSale);
+      byId("modal-confirm-yes").addEventListener("click", confirmDelete);
+      byId("modal-confirm-no").addEventListener("click", hideDeleteModal);
+
+      byId("delete-modal").addEventListener("click", function (event) {
+        if (event.target === byId("delete-modal")) { hideDeleteModal(); }
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && byId("delete-modal").classList.contains("visible")) { hideDeleteModal(); }
+        if ((event.key === "ArrowLeft" || event.key === "ArrowRight") &&
+          (document.activeElement === byId("dashboard-tab") || document.activeElement === byId("database-tab"))) {
+        event.preventDefault();
+        selectMainTab(document.activeElement === byId("dashboard-tab") ? "database" : "dashboard", true);
+        }
+      });
+
+      [["business-body", businessTableEvent], ["inventory-body", inventoryTableEvent],
+       ["products-body", productsTableEvent], ["sales-body", salesTableEvent]].forEach(function (pair) {
+        ["click", "input", "change"].forEach(function (type) {
+        byId(pair[0]).addEventListener(type, function (event) {
+          if (type === "input" && pair[0] === "business-body") {
+            var row = closestRow(event.target);
+            if (row && event.target.dataset.field) {
+            debounceUpdate("business-" + row.dataset.id, function () {
+              pair[1](event);
+            }, 300);
+            return;
+            }
+          }
+          pair[1](event);
+        });
+        });
+      });
+    }
+
+    function init() {
+      loadData();
+      bindEvents();
+      renderBusinesses();
+      renderDashboard();
+      if (window.lucide) { window.lucide.createIcons(); }
+      selectMainTab(window.location.hash === "#datos" ? "database" : "dashboard", false);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  </script>
+ </body>
+</html>
