@@ -95,13 +95,22 @@ export function useAppState() {
     closeModal()
   }
 
-  const addSale = (ventureId) => {
+  const addSale = (saleData = {}) => {
+    const ventureId = saleData.ventureId
+    if (!ventureId) return
+
+    const totalUnits = Object.values(saleData.selectedProducts || {}).reduce((sum, item) => sum + Number(item.quantity || 1), 0)
+
     const newSale = {
       id: createId('sale'),
       ventureId,
-      date: new Date().toISOString().slice(0, 10),
-      units: 1,
-      amount: 100,
+      date: saleData.date || new Date().toISOString().slice(0, 10),
+      units: totalUnits || 1,
+      amount: Number(saleData.amount || 0),
+      phone: saleData.phone || '',
+      location: saleData.location || '',
+      selectedProducts: saleData.selectedProducts || {},
+      margin: saleData.margin || '',
     }
 
     setRecords((current) => ({ ...current, sales: [...current.sales, newSale] }))
