@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { useAppState } from './hooks/useAppState'
 import { DashboardView } from './views/DashboardView'
@@ -13,7 +13,6 @@ function App() {
   const {
     view,
     setView,
-    records,
     search,
     setSearch,
     modal,
@@ -21,6 +20,7 @@ function App() {
     closeModal,
     draft,
     setDraft,
+    activeItem,
     ventures,
     materials,
     fixedCosts,
@@ -29,33 +29,53 @@ function App() {
     filteredVentures,
     filteredMaterials,
     stats,
-    addVenture,
+    saveVenture,
     addMaterial,
-    addProduct,
+    createProduct,
+    updateProduct,
     addSale,
     removeVenture,
     removeMaterial,
+    removeProduct,
   } = useAppState()
 
+  const [ventureForm, setVentureForm] = useState({ name: '', description: '' })
+
+  const handleOpenVentureModal = (venture = null) => {
+    openModal('venture', venture)
+    setVentureForm({ name: venture?.name || '', description: venture?.description || '' })
+  }
+
+  const handleCloseVentureModal = () => {
+    closeModal()
+    setVentureForm({ name: '', description: '' })
+  }
+
+  const handleSaveVenture = () => {
+    saveVenture(ventureForm.name, ventureForm.description)
+    handleCloseVentureModal()
+  }
+
   const currentView = useMemo(() => {
-    if (view === 'ventures') return <VenturesView ventures={ventures} products={products} filteredVentures={filteredVentures} search={search} onSearch={setSearch} onOpenModal={openModal} onDelete={(type, item) => { if (type === 'venture') removeVenture(item.id); if (type === 'material') removeMaterial(item.id) }} onAddProduct={(ventureId) => { setDraft(''); openModal('product'); addProduct(ventureId) }} />
-    if (view === 'inventory') return <InventoryView materials={materials} filteredMaterials={filteredMaterials} search={search} onSearch={setSearch} onOpenModal={openModal} onDelete={(type, item) => { if (type === 'material') removeMaterial(item.id) }} />
+    if (view === 'ventures') return <VenturesView ventures={ventures} products={products} filteredVentures={filteredVentures} search={search} onSearch={setSearch} onOpenModal={handleOpenVentureModal} onDelete={(type, item) => { if (type === 'venture') removeVenture(item.id); if (type === 'material') removeMaterial(item.id); if (type === 'product') removeProduct(item.id) }} onSaveProduct={(productData, productId) => { if (productId) updateProduct(productId, productData); else createProduct(productData) }} />
+    if (view === 'inventory') return <InventoryView materials={materials} filteredMaterials={filteredMaterials} search={search} onSearch={setSearch} onOpenModal={(type, item) => { if (type === 'material') { openModal(type, item); setDraft(item?.name || '') } }} onDelete={(type, item) => { if (type === 'material') removeMaterial(item.id) }} />
     if (view === 'finance') return <FinanceView fixedCosts={fixedCosts} stats={stats} />
     if (view === 'sales') return <SalesView sales={sales} ventures={ventures} products={products} onOpenModal={openModal} />
     return <DashboardView stats={stats} onNavigate={setView} />
-  }, [filteredMaterials, filteredVentures, fixedCosts, materials, openModal, products, removeMaterial, removeVenture, sales, search, setDraft, setSearch, setView, stats, ventures, view])
+  }, [createProduct, filteredMaterials, filteredVentures, fixedCosts, materials, openModal, products, removeMaterial, removeProduct, removeVenture, sales, search, setSearch, setView, stats, updateProduct, ventures, view])
 
   const renderModalContent = () => {
     if (!modal) return null
 
     if (modal === 'venture') {
       return (
-        <Modal title='Agregar emprendimiento' description='Crea una nueva línea de negocio' onClose={closeModal}>
+        <Modal title={activeItem ? 'Editar emprendimiento' : 'Agregar emprendimiento'} description='Gestiona la información de la línea de negocio' onClose={handleCloseVentureModal}>
           <div className='space-y-4'>
-            <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder='Nombre del emprendimiento' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
+            <input value={ventureForm.name} onChange={(event) => setVentureForm((current) => ({ ...current, name: event.target.value }))} placeholder='Nombre del emprendimiento' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
+            <textarea value={ventureForm.description} onChange={(event) => setVentureForm((current) => ({ ...current, description: event.target.value }))} placeholder='Descripción del emprendimiento' rows='3' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
             <div className='flex justify-end gap-3'>
-              <button type='button' onClick={closeModal} className='rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700'>Cancelar</button>
-              <button type='button' onClick={addVenture} className='rounded-full bg-[#082d72] px-4 py-2 text-sm font-semibold text-white'>Guardar</button>
+              <button type='button' onClick={handleCloseVentureModal} className='rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700'>Cancelar</button>
+              <button type='button' onClick={handleSaveVenture} className='rounded-full bg-[#082d72] px-4 py-2 text-sm font-semibold text-white'>Guardar</button>
             </div>
           </div>
         </Modal>
@@ -69,21 +89,7 @@ function App() {
             <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder='Nombre del material' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
             <div className='flex justify-end gap-3'>
               <button type='button' onClick={closeModal} className='rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700'>Cancelar</button>
-              <button type='button' onClick={addMaterial} className='rounded-full bg-[#168467] px-4 py-2 text-sm font-semibold text-white'>Guardar</button>
-            </div>
-          </div>
-        </Modal>
-      )
-    }
-
-    if (modal === 'product') {
-      return (
-        <Modal title='Agregar producto' description='Asocia el producto con un emprendimiento' onClose={closeModal}>
-          <div className='space-y-4'>
-            <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder='Nombre del producto' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
-            <div className='flex justify-end gap-3'>
-              <button type='button' onClick={closeModal} className='rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700'>Cancelar</button>
-              <button type='button' onClick={() => addProduct(ventures[0]?.id)} className='rounded-full bg-[#082d72] px-4 py-2 text-sm font-semibold text-white'>Guardar</button>
+              <button type='button' onClick={() => addMaterial(draft)} className='rounded-full bg-[#168467] px-4 py-2 text-sm font-semibold text-white'>Guardar</button>
             </div>
           </div>
         </Modal>
@@ -112,7 +118,7 @@ function App() {
 
   return (
     <div className='min-h-screen bg-[#f6f3eb] text-slate-800'>
-      <div className='mx-auto flex min-h-screen max-w-7xl flex-col lg:flex-row'>
+      <div className='flex min-h-screen flex-col lg:flex-row'>
         <Sidebar currentView={view} onNavigate={setView} />
 
         <main className='flex-1 p-4 sm:p-6 lg:p-8'>

@@ -2,7 +2,7 @@ import { NAV_ITEMS } from '../models/appModel'
 
 export function Sidebar({ currentView, onNavigate }) {
   return (
-    <aside className='hidden w-72 shrink-0 bg-[#082d72] p-6 text-white lg:flex lg:flex-col'>
+    <aside className='hidden w-72 shrink-0 bg-[#082d72] p-6 text-white lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen'>
       <div className='mb-8'>
         <p className='text-2xl font-semibold tracking-wide'>Asodeco</p>
         <p className='mt-2 text-sm text-blue-100'>Gestión de emprendimientos</p>
@@ -21,10 +21,6 @@ export function Sidebar({ currentView, onNavigate }) {
         ))}
       </nav>
 
-      <div className='mt-auto rounded-2xl border border-white/15 bg-white/10 p-4 text-sm text-blue-100'>
-        <p className='font-semibold text-white'>Herramienta operativa</p>
-        <p className='mt-2 leading-relaxed'>Administra inventario, costos y ventas desde un tablero central.</p>
-      </div>
     </aside>
   )
 }

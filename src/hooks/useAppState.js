@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react'
-import { createId, formatMoney, normalize, starterData } from '../models/appModel'
+import { createId, normalize, starterData } from '../models/appModel'
 
 export function useAppState() {
   const [view, setView] = useState('dashboard')
   const [records, setRecords] = useState(starterData)
   const [search, setSearch] = useState('')
   const [modal, setModal] = useState(null)
-  const [draft, setDraft] = useState('')
   const [activeItem, setActiveItem] = useState(null)
+  const [draft, setDraft] = useState('')
 
   const ventures = useMemo(() => records.ventures, [records.ventures])
   const materials = useMemo(() => records.materials, [records.materials])
@@ -49,26 +49,38 @@ export function useAppState() {
     setDraft('')
   }
 
-  const addVenture = () => {
-    if (!draft.trim()) return
+  const saveVenture = (name, description) => {
+    const normalizedName = name.trim()
+    if (!normalizedName) return
 
-    const newVenture = {
-      id: createId('venture'),
-      name: draft.trim(),
-      description: 'Nuevo emprendimiento',
-      products: 0,
+    const normalizedDescription = description.trim() || 'Nuevo emprendimiento'
+
+    if (activeItem) {
+      setRecords((current) => ({
+        ...current,
+        ventures: current.ventures.map((venture) => venture.id === activeItem.id ? { ...venture, name: normalizedName, description: normalizedDescription } : venture),
+      }))
+    } else {
+      const newVenture = {
+        id: createId('venture'),
+        name: normalizedName,
+        description: normalizedDescription,
+        products: 0,
+      }
+
+      setRecords((current) => ({ ...current, ventures: [...current.ventures, newVenture] }))
     }
 
-    setRecords((current) => ({ ...current, ventures: [...current.ventures, newVenture] }))
     closeModal()
   }
 
-  const addMaterial = () => {
-    if (!draft.trim()) return
+  const addMaterial = (name) => {
+    const normalizedName = name.trim()
+    if (!normalizedName) return
 
     const newMaterial = {
       id: createId('material'),
-      name: draft.trim(),
+      name: normalizedName,
       unit: 'ud',
       cost: 10,
       stock: 0,
@@ -78,21 +90,31 @@ export function useAppState() {
     closeModal()
   }
 
-  const addProduct = (ventureId) => {
-    if (!draft.trim()) return
+  const createProduct = ({ ventureId, name, description, cost }) => {
+    const normalizedName = name.trim()
+    if (!normalizedName || !ventureId) return
 
     const newProduct = {
       id: createId('product'),
       ventureId,
-      name: draft.trim(),
-      description: 'Producto nuevo',
-      cost: 20,
+      name: normalizedName,
+      description: description.trim() || 'Producto nuevo',
+      cost: Number(cost || 0),
       materialIds: [],
       fixedCostIds: [],
     }
 
     setRecords((current) => ({ ...current, products: [...current.products, newProduct] }))
-    closeModal()
+  }
+
+  const updateProduct = (productId, { name, description, cost }) => {
+    const normalizedName = name.trim()
+    if (!normalizedName) return
+
+    setRecords((current) => ({
+      ...current,
+      products: current.products.map((product) => product.id === productId ? { ...product, name: normalizedName, description: description.trim() || 'Producto nuevo', cost: Number(cost || 0) } : product),
+    }))
   }
 
   const addSale = (ventureId) => {
@@ -121,6 +143,10 @@ export function useAppState() {
     setRecords((current) => ({ ...current, materials: current.materials.filter((material) => material.id !== materialId) }))
   }
 
+  const removeProduct = (productId) => {
+    setRecords((current) => ({ ...current, products: current.products.filter((product) => product.id !== productId) }))
+  }
+
   return {
     view,
     setView,
@@ -142,11 +168,13 @@ export function useAppState() {
     filteredVentures,
     filteredMaterials,
     stats,
-    addVenture,
+    saveVenture,
     addMaterial,
-    addProduct,
+    createProduct,
+    updateProduct,
     addSale,
     removeVenture,
     removeMaterial,
+    removeProduct,
   }
 }
