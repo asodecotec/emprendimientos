@@ -82,10 +82,13 @@ export function useAppState() {
     materials.map((material) => {
       const totals = purchaseTotals[material.id] || { quantity: 0, cost: 0 }
       const consumed = salesConsumption[material.id] || 0
+      const derivedStock = totals.quantity - consumed
+      const resolvedStock = material.stock != null ? Number(material.stock) : derivedStock
       return {
         ...material,
-        stock: totals.quantity - consumed,
+        stock: resolvedStock,
         avgCost: totals.quantity > 0 ? totals.cost / totals.quantity : material.cost,
+        unitPrice: Number(material.unitPrice ?? material.cost ?? 0),
       }
     })
   ), [materials, purchaseTotals, salesConsumption])
@@ -182,19 +185,49 @@ export function useAppState() {
     closeModal()
   }
 
-  const addMaterial = (name, ventureId) => {
-    const normalizedName = name.trim()
+  const addMaterial = (materialData = {}) => {
+    const normalizedName = String(materialData.name || '').trim()
+    const ventureId = materialData.ventureId
     if (!normalizedName || !ventureId) return
+
+    const unit = materialData.unit || 'ud'
+    const stock = Math.max(Number(materialData.stock || 0), 0)
+    const unitPrice = Math.max(Number(materialData.unitPrice ?? materialData.cost ?? 10), 0)
 
     const newMaterial = {
       id: createId('material'),
       name: normalizedName,
-      unit: 'ud',
-      cost: 10,
+      unit,
+      cost: unitPrice,
+      unitPrice,
+      stock,
       ventureId,
     }
 
     setRecords((current) => ({ ...current, materials: [...current.materials, newMaterial] }))
+    closeModal()
+  }
+
+  const updateMaterial = (materialId, materialData = {}) => {
+    const normalizedName = String(materialData.name || '').trim()
+    if (!normalizedName) return
+
+    const unit = materialData.unit || 'ud'
+    const stock = Math.max(Number(materialData.stock || 0), 0)
+    const unitPrice = Math.max(Number(materialData.unitPrice ?? materialData.cost ?? 0), 0)
+
+    setRecords((current) => ({
+      ...current,
+      materials: current.materials.map((material) => material.id === materialId ? {
+        ...material,
+        name: normalizedName,
+        unit,
+        cost: unitPrice,
+        unitPrice,
+        stock,
+        ventureId: materialData.ventureId || material.ventureId,
+      } : material),
+    }))
     closeModal()
   }
 
@@ -276,20 +309,37 @@ export function useAppState() {
   const addPurchase = ({ materialId, date, quantity, cost } = {}) => {
     if (!materialId) return
 
+    const normalizedQuantity = Math.max(Number(quantity) || 0, 0)
+    const normalizedCost = Math.max(Number(cost) || 0, 0)
     const newPurchase = {
       id: createId('purchase'),
       materialId,
       date: date || new Date().toISOString().slice(0, 10),
-      quantity: Math.max(Number(quantity) || 0, 0),
-      cost: Math.max(Number(cost) || 0, 0),
+      quantity: normalizedQuantity,
+      cost: normalizedCost,
     }
 
-    setRecords((current) => ({ ...current, purchases: [...current.purchases, newPurchase] }))
+    setRecords((current) => {
+      const material = current.materials.find((item) => item.id === materialId)
+      const currentStock = material?.stock != null ? Number(material.stock) : 0
+      return {
+        ...current,
+        purchases: [...current.purchases, newPurchase],
+        materials: current.materials.map((item) => item.id === materialId ? { ...item, stock: currentStock + normalizedQuantity } : item),
+      }
+    })
     closeModal()
   }
 
   const removePurchase = (purchaseId) => {
-    setRecords((current) => ({ ...current, purchases: current.purchases.filter((purchase) => purchase.id !== purchaseId) }))
+    setRecords((current) => {
+      const purchase = current.purchases.find((item) => item.id === purchaseId)
+      return {
+        ...current,
+        purchases: current.purchases.filter((item) => item.id !== purchaseId),
+        materials: purchase ? current.materials.map((item) => item.id === purchase.materialId ? { ...item, stock: Math.max(Number(item.stock || 0) - Number(purchase.quantity || 0), 0) } : item) : current.materials,
+      }
+    })
   }
 
   const removeVenture = (ventureId) => {
@@ -349,6 +399,7 @@ export function useAppState() {
     stats,
     saveVenture,
     addMaterial,
+    updateMaterial,
     createProduct,
     updateProduct,
     addSale,

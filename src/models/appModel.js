@@ -1,3 +1,73 @@
+export const MATERIAL_UNITS = [
+  { value: 'kg', label: 'kg' },
+  { value: 'g', label: 'g' },
+  { value: 'mg', label: 'mg' },
+  { value: 'm', label: 'm' },
+  { value: 'km', label: 'km' },
+  { value: 'cm', label: 'cm' },
+  { value: 'mm', label: 'mm' },
+  { value: 'l', label: 'l' },
+  { value: 'ml', label: 'ml' },
+  { value: 'ud', label: 'ud' },
+  { value: 'u', label: 'u' },
+  { value: 'lb', label: 'lb' },
+  { value: 'oz', label: 'oz' },
+]
+
+const UNIT_ALIASES = {
+  kg: ['kg', 'kilo', 'kilos', 'kilogramo', 'kilogramos'],
+  g: ['g', 'gr', 'gramo', 'gramos'],
+  mg: ['mg', 'miligramo', 'miligramo'],
+  m: ['m', 'metro', 'metros'],
+  km: ['km', 'kilometro', 'kilometros'],
+  cm: ['cm', 'centimetro', 'centimetros'],
+  mm: ['mm', 'milimetro', 'milimetros'],
+  l: ['l', 'litro', 'litros'],
+  ml: ['ml', 'mililitro', 'mililitros'],
+  ud: ['ud', 'unidad', 'unidades', 'u', 'unid'],
+  lb: ['lb', 'libra', 'libras'],
+  oz: ['oz', 'onza', 'onzas'],
+}
+
+const BASE_UNIT_FACTORS = {
+  kg: 1,
+  g: 0.001,
+  mg: 0.000001,
+  m: 1,
+  km: 1000,
+  cm: 0.01,
+  mm: 0.001,
+  l: 1,
+  ml: 0.001,
+  ud: null,
+  lb: 0.45359237,
+  oz: 0.0283495231,
+}
+
+function normalizeUnit(unit) {
+  const normalized = String(unit || '').trim().toLocaleLowerCase('es-419')
+  if (!normalized) return 'ud'
+  for (const [canonical, aliases] of Object.entries(UNIT_ALIASES)) {
+    if (aliases.includes(normalized)) return canonical
+  }
+  return normalized
+}
+
+export function convertQuantity(value, fromUnit, toUnit) {
+  const parsedValue = Number(value)
+  if (!Number.isFinite(parsedValue)) return 0
+  const normalizedFrom = normalizeUnit(fromUnit)
+  const normalizedTo = normalizeUnit(toUnit)
+  if (!normalizedFrom || !normalizedTo || normalizedFrom === normalizedTo) return parsedValue
+
+  const fromBase = BASE_UNIT_FACTORS[normalizedFrom]
+  const toBase = BASE_UNIT_FACTORS[normalizedTo]
+  if (fromBase == null || toBase == null) return parsedValue
+  if (fromBase === null || toBase === null) return parsedValue
+
+  return parsedValue * fromBase / toBase
+}
+
 export const NAV_ITEMS = [
   { key: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
   { key: 'ventures', label: 'Emprendimientos', icon: 'store' },

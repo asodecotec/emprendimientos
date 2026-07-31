@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { useAppState } from './hooks/useAppState'
+import { MATERIAL_UNITS, convertQuantity } from './models/appModel'
 import { DashboardView } from './views/DashboardView'
 import { VenturesView } from './views/VenturesView'
 import { ProductsView } from './views/ProductsView'
@@ -37,6 +38,7 @@ function App() {
     stats,
     saveVenture,
     addMaterial,
+    updateMaterial,
     createProduct,
     updateProduct,
     addSale,
@@ -86,13 +88,28 @@ function App() {
     cost: '',
   })
 
-  const [materialForm, setMaterialForm] = useState({ name: '', ventureId: '' })
+  const [materialForm, setMaterialForm] = useState({ name: '', ventureId: '', unit: 'kg', stock: '', unitPrice: '' })
+
+  const handleMaterialUnitChange = useCallback((nextUnit) => {
+    setMaterialForm((current) => {
+      const parsedStock = Number(current.stock || 0)
+      const convertedStock = Number.isFinite(parsedStock) ? convertQuantity(parsedStock, current.unit, nextUnit) : 0
+      return {
+        ...current,
+        unit: nextUnit,
+        stock: Number.isFinite(convertedStock) ? String(convertedStock) : current.stock,
+      }
+    })
+  }, [])
 
   const handleOpenMaterialModal = useCallback((material = null) => {
     openModal('material', material)
     setMaterialForm({
       name: material?.name || '',
       ventureId: material?.ventureId || ventureFilter || ventures[0]?.id || '',
+      unit: material?.unit || 'kg',
+      stock: material?.stock != null ? String(material.stock) : '',
+      unitPrice: material?.unitPrice != null ? String(material.unitPrice) : material?.cost != null ? String(material.cost) : '',
     })
   }, [openModal, ventureFilter, ventures])
 
@@ -147,6 +164,28 @@ function App() {
       materials: product?.materials?.length ? product.materials.map((item) => ({ materialId: item.materialId, quantity: String(item.quantity) })) : [{ materialId: '', quantity: 1 }],
     })
   }, [openModal, ventureFilter, ventures])
+
+  const handleSaveMaterial = () => {
+    const name = materialForm.name.trim()
+    const ventureId = materialForm.ventureId
+    const unit = materialForm.unit || 'ud'
+    const stock = Math.max(Number(materialForm.stock || 0), 0)
+    const unitPrice = Math.max(Number(materialForm.unitPrice || 0), 0)
+
+    if (!name || !ventureId) return
+
+    const payload = {
+      name,
+      ventureId,
+      unit,
+      stock,
+      unitPrice,
+      cost: unitPrice,
+    }
+
+    if (activeItem) updateMaterial(activeItem.id, payload)
+    else addMaterial(payload)
+  }
 
   const handleSaveProduct = () => {
     const name = productForm.name.trim()
@@ -267,9 +306,31 @@ function App() {
                 ))}
               </select>
             </label>
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <label className='block'>
+                <span className='mb-2 block text-sm font-semibold text-slate-700'>Unidad</span>
+                <select
+                  value={materialForm.unit}
+                  onChange={(event) => handleMaterialUnitChange(event.target.value)}
+                  className='w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[#082d72]'
+                >
+                  {MATERIAL_UNITS.map((unit) => (
+                    <option key={unit.value} value={unit.value}>{unit.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className='block'>
+                <span className='mb-2 block text-sm font-semibold text-slate-700'>Cantidad actual</span>
+                <input type='number' min='0' step='0.01' value={materialForm.stock} onChange={(event) => setMaterialForm((current) => ({ ...current, stock: event.target.value }))} placeholder='0' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
+              </label>
+            </div>
+            <label className='block'>
+              <span className='mb-2 block text-sm font-semibold text-slate-700'>Precio por cantidad</span>
+              <input type='number' min='0' step='0.01' value={materialForm.unitPrice} onChange={(event) => setMaterialForm((current) => ({ ...current, unitPrice: event.target.value }))} placeholder='0' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
+            </label>
             <div className='flex justify-end gap-3'>
               <button type='button' onClick={closeModal} className='rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700'>Cancelar</button>
-              <button type='button' onClick={() => addMaterial(materialForm.name, materialForm.ventureId)} className='rounded-full bg-[#168467] px-4 py-2 text-sm font-semibold text-white'>Guardar</button>
+              <button type='button' onClick={handleSaveMaterial} className='rounded-full bg-[#168467] px-4 py-2 text-sm font-semibold text-white'>Guardar</button>
             </div>
           </div>
         </Modal>
