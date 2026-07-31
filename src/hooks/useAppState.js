@@ -1,13 +1,10 @@
 import { useMemo, useState } from 'react'
-import { createId, formatMoney, normalize, starterData } from '../models/appModel'
+import { createId, normalize, starterData } from '../models/appModel'
 
 export function useAppState() {
   const [view, setView] = useState('dashboard')
   const [records, setRecords] = useState(starterData)
   const [search, setSearch] = useState('')
-  const [modal, setModal] = useState(null)
-  const [draft, setDraft] = useState('')
-  const [activeItem, setActiveItem] = useState(null)
 
   const ventures = useMemo(() => records.ventures, [records.ventures])
   const materials = useMemo(() => records.materials, [records.materials])
@@ -37,75 +34,108 @@ export function useAppState() {
     }
   }, [ventures.length, materials.length, products.length, sales, fixedCosts])
 
-  const openModal = (type, item = null) => {
-    setModal(type)
-    setActiveItem(item)
-    setDraft(item?.name || '')
-  }
-
-  const closeModal = () => {
-    setModal(null)
-    setActiveItem(null)
-    setDraft('')
-  }
-
-  const addVenture = () => {
-    if (!draft.trim()) return
+  const createVenture = ({ name, description }) => {
+    const normalizedName = String(name || '').trim()
+    if (!normalizedName) return
 
     const newVenture = {
       id: createId('venture'),
-      name: draft.trim(),
-      description: 'Nuevo emprendimiento',
+      name: normalizedName,
+      description: String(description || '').trim() || 'Nuevo emprendimiento',
       products: 0,
     }
 
     setRecords((current) => ({ ...current, ventures: [...current.ventures, newVenture] }))
-    closeModal()
   }
 
-  const addMaterial = () => {
-    if (!draft.trim()) return
+  const updateVenture = (ventureId, { name, description }) => {
+    const normalizedName = String(name || '').trim()
+    if (!normalizedName || !ventureId) return
+
+    setRecords((current) => ({
+      ...current,
+      ventures: current.ventures.map((venture) => venture.id === ventureId ? { ...venture, name: normalizedName, description: String(description || '').trim() || 'Nuevo emprendimiento' } : venture),
+    }))
+  }
+
+  const createMaterial = ({ name, unit = 'ud', cost = 10, stock = 0 }) => {
+    const normalizedName = String(name || '').trim()
+    if (!normalizedName) return
 
     const newMaterial = {
       id: createId('material'),
-      name: draft.trim(),
-      unit: 'ud',
-      cost: 10,
-      stock: 0,
+      name: normalizedName,
+      unit,
+      cost: Number(cost || 0),
+      stock: Number(stock || 0),
     }
 
     setRecords((current) => ({ ...current, materials: [...current.materials, newMaterial] }))
-    closeModal()
   }
 
-  const addProduct = (ventureId) => {
-    if (!draft.trim()) return
+  const updateMaterial = (materialId, { name, unit = 'ud', cost = 10, stock = 0 }) => {
+    const normalizedName = String(name || '').trim()
+    if (!normalizedName || !materialId) return
+
+    setRecords((current) => ({
+      ...current,
+      materials: current.materials.map((material) => material.id === materialId ? { ...material, name: normalizedName, unit, cost: Number(cost || 0), stock: Number(stock || 0) } : material),
+    }))
+  }
+
+  const createProduct = ({ ventureId, name, description, cost, materials = [] }) => {
+    const normalizedName = String(name || '').trim()
+    if (!normalizedName || !ventureId) return
 
     const newProduct = {
       id: createId('product'),
       ventureId,
-      name: draft.trim(),
-      description: 'Producto nuevo',
-      cost: 20,
+      name: normalizedName,
+      description: String(description || '').trim() || 'Producto nuevo',
+      cost: Number(cost || 0),
+      materials: (materials || []).filter((item) => item?.materialId && Number(item.quantity || 0) > 0),
       materialIds: [],
       fixedCostIds: [],
     }
 
     setRecords((current) => ({ ...current, products: [...current.products, newProduct] }))
-    closeModal()
   }
 
-  const addSale = (ventureId) => {
+  const updateProduct = (productId, { name, description, cost, materials = [] }) => {
+    const normalizedName = String(name || '').trim()
+    if (!normalizedName) return
+
+    setRecords((current) => ({
+      ...current,
+      products: current.products.map((product) => product.id === productId ? {
+        ...product,
+        name: normalizedName,
+        description: String(description || '').trim() || 'Producto nuevo',
+        cost: Number(cost || 0),
+        materials: (materials || []).filter((item) => item?.materialId && Number(item.quantity || 0) > 0),
+      } : product),
+    }))
+  }
+
+  const createSale = (saleData = {}) => {
+    const ventureId = saleData.ventureId
+    if (!ventureId) return
+
+    const totalUnits = Object.values(saleData.selectedProducts || {}).reduce((sum, item) => sum + Number(item.quantity || 1), 0)
+
     const newSale = {
       id: createId('sale'),
       ventureId,
-      date: new Date().toISOString().slice(0, 10),
-      units: 1,
-      amount: 100,
+      date: saleData.date || new Date().toISOString().slice(0, 10),
+      units: totalUnits || 1,
+      amount: Number(saleData.amount || 0),
+      phone: saleData.phone || '',
+      location: saleData.location || '',
+      selectedProducts: saleData.selectedProducts || {},
+      margin: saleData.margin || '',
     }
 
     setRecords((current) => ({ ...current, sales: [...current.sales, newSale] }))
-    closeModal()
   }
 
   const removeVenture = (ventureId) => {
@@ -121,6 +151,10 @@ export function useAppState() {
     setRecords((current) => ({ ...current, materials: current.materials.filter((material) => material.id !== materialId) }))
   }
 
+  const removeProduct = (productId) => {
+    setRecords((current) => ({ ...current, products: current.products.filter((product) => product.id !== productId) }))
+  }
+
   return {
     view,
     setView,
@@ -128,12 +162,6 @@ export function useAppState() {
     setRecords,
     search,
     setSearch,
-    modal,
-    openModal,
-    closeModal,
-    draft,
-    setDraft,
-    activeItem,
     ventures,
     materials,
     fixedCosts,
@@ -142,11 +170,15 @@ export function useAppState() {
     filteredVentures,
     filteredMaterials,
     stats,
-    addVenture,
-    addMaterial,
-    addProduct,
-    addSale,
+    createVenture,
+    updateVenture,
+    createMaterial,
+    updateMaterial,
+    createProduct,
+    updateProduct,
+    createSale,
     removeVenture,
     removeMaterial,
+    removeProduct,
   }
 }
