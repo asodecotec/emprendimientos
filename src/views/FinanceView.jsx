@@ -2,7 +2,7 @@ import { MetricCard } from '../components/MetricCard'
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-export function FinanceView({ fixedCosts, stats }) {
+export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVentureFilter }) {
   return (
     <section className='space-y-6'>
       <header>
@@ -10,6 +10,17 @@ export function FinanceView({ fixedCosts, stats }) {
         <h1 className='text-3xl font-semibold text-[#082d72]'>Evalúa la rentabilidad</h1>
         <p className='mt-2 text-sm text-slate-600'>Compara ingresos, costos fijos y desempeño para tomar mejores decisiones.</p>
       </header>
+
+      <select
+        value={ventureFilter}
+        onChange={(event) => onVentureFilter(event.target.value)}
+        className='rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none sm:max-w-xs'
+      >
+        <option value=''>Todos los emprendimientos</option>
+        {ventures.map((venture) => (
+          <option key={venture.id} value={venture.id}>{venture.name}</option>
+        ))}
+      </select>
 
       <div className='grid gap-4 md:grid-cols-3'>
         <MetricCard title='Ingresos' value={formatMoney(stats.revenue)} accent='text-[#168467]' />

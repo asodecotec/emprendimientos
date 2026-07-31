@@ -1,7 +1,7 @@
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-export function SalesView({ sales, ventures, products, onOpenModal }) {
+export function SalesView({ sales, ventures, products, ventureFilter, onVentureFilter, onOpenModal, onDelete }) {
   return (
     <section className='space-y-6'>
       <header className='flex flex-col justify-between gap-4 sm:flex-row sm:items-end'>
@@ -12,6 +12,17 @@ export function SalesView({ sales, ventures, products, onOpenModal }) {
         </div>
         <button type='button' onClick={() => onOpenModal('sale')} className='rounded-full bg-[#082d72] px-4 py-2 text-sm font-semibold text-white'>+ Nueva venta</button>
       </header>
+
+      <select
+        value={ventureFilter}
+        onChange={(event) => onVentureFilter(event.target.value)}
+        className='rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none sm:max-w-xs'
+      >
+        <option value=''>Todos los emprendimientos</option>
+        {ventures.map((venture) => (
+          <option key={venture.id} value={venture.id}>{venture.name}</option>
+        ))}
+      </select>
 
       <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
         {sales.length ? (
@@ -25,7 +36,11 @@ export function SalesView({ sales, ventures, products, onOpenModal }) {
                     <h2 className='font-semibold text-slate-900'>{venture?.name || 'Emprendimiento'}</h2>
                     <p className='mt-1 text-sm text-slate-500'>Fecha {sale.date} · {sale.units} unidades · {productCount} productos</p>
                   </div>
-                  <p className='text-lg font-semibold text-[#168467]'>{formatMoney(sale.amount)}</p>
+                  <div className='flex items-center gap-3'>
+                    <p className='text-lg font-semibold text-[#168467]'>{formatMoney(sale.amount)}</p>
+                    <button type='button' onClick={() => onOpenModal('sale', sale)} className='rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100'>Editar</button>
+                    <button type='button' onClick={() => onDelete('sale', sale)} className='rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50'>Eliminar</button>
+                  </div>
                 </div>
               )
             })}
