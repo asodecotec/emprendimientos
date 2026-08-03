@@ -1,9 +1,9 @@
 export const NAV_ITEMS = [
-  { key: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
-  { key: 'ventures', label: 'Emprendimientos', icon: 'store' },
-  { key: 'inventory', label: 'Inventario', icon: 'boxes' },
-  { key: 'finance', label: 'Finanzas', icon: 'landmark' },
-  { key: 'sales', label: 'Ventas', icon: 'receipt' },
+  { key: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
+  { key: 'ventures', path: '/ventures', label: 'Emprendimientos', icon: 'store' },
+  { key: 'inventory', path: '/inventory', label: 'Inventario', icon: 'boxes' },
+  { key: 'finance', path: '/finance', label: 'Finanzas', icon: 'landmark' },
+  { key: 'sales', path: '/sales', label: 'Ventas', icon: 'receipt' },
 ]
 
 export const starterData = {

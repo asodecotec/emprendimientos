@@ -1,8 +1,27 @@
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { MetricCard } from '../components/MetricCard'
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-export function DashboardView({ stats, onNavigate }) {
+export function DashboardView({ records }) {
+  const stats = useMemo(() => {
+    const ventures = records.ventures || []
+    const materials = records.materials || []
+    const products = records.products || []
+    const sales = records.sales || []
+    const revenue = sales.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+
+    return {
+      ventures: ventures.length,
+      materials: materials.length,
+      products: products.length,
+      sales: sales.length,
+      revenue,
+      costs: (records.fixedCosts || []).reduce((sum, item) => sum + Number(item.cost || 0), 0),
+    }
+  }, [records])
+
   return (
     <section className='space-y-6'>
       <header>
@@ -21,7 +40,7 @@ export function DashboardView({ stats, onNavigate }) {
       <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
         <h2 className='text-lg font-semibold text-slate-900'>Tu operación lista para crecer</h2>
         <p className='mt-2 text-sm text-slate-600'>Crea emprendimientos, define material y costos fijos, y mantén el control de tus ventas desde un mismo lugar.</p>
-        <button type='button' onClick={() => onNavigate('ventures')} className='mt-5 rounded-full bg-[#082d72] px-4 py-2 text-sm font-semibold text-white'>Ver emprendimientos</button>
+        <Link to='/ventures' className='mt-5 inline-flex rounded-full bg-[#082d72] px-4 py-2 text-sm font-semibold text-white'>Ver emprendimientos</Link>
       </div>
 
       <EmptyState title='Vista central' description='Los módulos se separaron para que cada parte del negocio sea más fácil de mantener y ampliar.' />

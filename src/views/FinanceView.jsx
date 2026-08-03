@@ -1,8 +1,22 @@
+import { useMemo } from 'react'
 import { MetricCard } from '../components/MetricCard'
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-export function FinanceView({ fixedCosts, stats }) {
+export function FinanceView({ records }) {
+  const stats = useMemo(() => {
+    const sales = records.sales || []
+    const fixedCosts = records.fixedCosts || []
+
+    return {
+      revenue: sales.reduce((sum, item) => sum + Number(item.amount || 0), 0),
+      costs: fixedCosts.reduce((sum, item) => sum + Number(item.cost || 0), 0),
+      sales: sales.length,
+    }
+  }, [records])
+
+  const fixedCosts = records.fixedCosts || []
+
   return (
     <section className='space-y-6'>
       <header>

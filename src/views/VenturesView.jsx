@@ -1,9 +1,14 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { EmptyState } from '../components/EmptyState'
 import { Modal } from '../components/Modal'
-import { formatMoney, getProductCost } from '../models/appModel'
+import { createId, formatMoney, getProductCost, normalize } from '../models/appModel'
 
-export function VenturesView({ ventures, products, materials, filteredVentures, search, onSearch, onCreateVenture, onUpdateVenture, onDeleteVenture, onCreateProduct, onUpdateProduct, onDeleteProduct }) {
+export function VenturesView({ records, onRecordsChange }) {
+  const ventures = records?.ventures || []
+  const products = records?.products || []
+  const materials = records?.materials || []
+
+  const [search, setSearch] = useState('')
   const [ventureForm, setVentureForm] = useState({ name: '', description: '' })
   const [editingVenture, setEditingVenture] = useState(null)
   const [isVentureModalOpen, setIsVentureModalOpen] = useState(false)
@@ -11,6 +16,15 @@ export function VenturesView({ ventures, products, materials, filteredVentures, 
   const [editingProduct, setEditingProduct] = useState(null)
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
+
+  const filteredVentures = useMemo(() => {
+    const query = normalize(search)
+    return ventures.filter((venture) => normalize(`${venture.name} ${venture.description}`).includes(query))
+  }, [search, ventures])
+
+  const updateRecords = (updater) => {
+    onRecordsChange?.(updater)
+  }
 
   const openVentureModal = (venture = null) => {
     setEditingVenture(venture)
@@ -26,12 +40,28 @@ export function VenturesView({ ventures, products, materials, filteredVentures, 
 
   const handleSaveVenture = () => {
     const payload = { name: ventureForm.name, description: ventureForm.description }
-    if (!payload.name.trim()) return
+    const normalizedName = String(payload.name || '').trim()
+    if (!normalizedName) return
 
     if (editingVenture) {
-      onUpdateVenture(editingVenture.id, payload)
+      updateRecords((current) => ({
+        ...current,
+        ventures: (current.ventures || []).map((venture) => venture.id === editingVenture.id
+          ? { ...venture, name: normalizedName, description: String(payload.description || '').trim() || 'Nuevo emprendimiento' }
+          : venture),
+      }))
     } else {
-      onCreateVenture(payload)
+      const newVenture = {
+        id: createId('venture'),
+        name: normalizedName,
+        description: String(payload.description || '').trim() || 'Nuevo emprendimiento',
+        products: 0,
+      }
+
+      updateRecords((current) => ({
+        ...current,
+        ventures: [...(current.ventures || []), newVenture],
+      }))
     }
 
     closeVentureModal()
@@ -65,7 +95,6 @@ export function VenturesView({ ventures, products, materials, filteredVentures, 
     if (!name || !productForm.ventureId) return
 
     const normalizedMaterials = (productForm.useMaterials ? productForm.materials : []).filter((item) => item.materialId && Number(item.quantity || 0) > 0)
-
     const payload = {
       ventureId: productForm.ventureId,
       name,
@@ -75,9 +104,33 @@ export function VenturesView({ ventures, products, materials, filteredVentures, 
     }
 
     if (editingProduct) {
-      onUpdateProduct(editingProduct.id, payload)
+      updateRecords((current) => ({
+        ...current,
+        products: (current.products || []).map((product) => product.id === editingProduct.id ? {
+          ...product,
+          ventureId: payload.ventureId,
+          name: payload.name,
+          description: payload.description,
+          cost: payload.cost,
+          materials: payload.materials,
+        } : product),
+      }))
     } else {
-      onCreateProduct(payload)
+      const newProduct = {
+        id: createId('product'),
+        ventureId: payload.ventureId,
+        name: payload.name,
+        description: payload.description,
+        cost: payload.cost,
+        materials: payload.materials,
+        materialIds: [],
+        fixedCostIds: [],
+      }
+
+      updateRecords((current) => ({
+        ...current,
+        products: [...(current.products || []), newProduct],
+      }))
     }
 
     closeProductModal()
@@ -95,9 +148,18 @@ export function VenturesView({ ventures, products, materials, filteredVentures, 
     if (!pendingDelete) return
 
     if (pendingDelete.type === 'venture') {
-      onDeleteVenture(pendingDelete.item.id)
+      const ventureId = pendingDelete.item.id
+      updateRecords((current) => ({
+        ...current,
+        ventures: (current.ventures || []).filter((venture) => venture.id !== ventureId),
+        products: (current.products || []).filter((product) => product.ventureId !== ventureId),
+        sales: (current.sales || []).filter((sale) => sale.ventureId !== ventureId),
+      }))
     } else if (pendingDelete.type === 'product') {
-      onDeleteProduct(pendingDelete.item.id)
+      updateRecords((current) => ({
+        ...current,
+        products: (current.products || []).filter((product) => product.id !== pendingDelete.item.id),
+      }))
     }
 
     closeDeleteConfirm()
@@ -119,7 +181,7 @@ export function VenturesView({ ventures, products, materials, filteredVentures, 
         <button type='button' onClick={() => openVentureModal()} className='rounded-full bg-[#082d72] px-4 py-2 text-sm font-semibold text-white'>+ Nuevo emprendimiento</button>
       </header>
 
-      <input value={search} onChange={(event) => onSearch(event.target.value)} placeholder='Buscar emprendimiento' className='w-full max-w-md rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
+      <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder='Buscar emprendimiento' className='w-full max-w-md rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
 
       <div className='space-y-4'>
         {filteredVentures.map((venture) => {

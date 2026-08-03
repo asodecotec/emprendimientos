@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { EmptyState } from '../components/EmptyState'
 import { Modal } from '../components/Modal'
-import { formatMoney } from '../models/appModel'
+import { createId, formatMoney } from '../models/appModel'
 
-export function SalesView({ sales, ventures, products, onCreateSale }) {
+export function SalesView({ records, onRecordsChange }) {
+  const ventures = records?.ventures || []
+  const products = records?.products || []
+  const sales = records?.sales || []
+
   const [saleForm, setSaleForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     phone: '',
@@ -14,6 +18,10 @@ export function SalesView({ sales, ventures, products, onCreateSale }) {
     selectedProducts: {},
   })
   const [isSaleModalOpen, setIsSaleModalOpen] = useState(false)
+
+  const updateRecords = (updater) => {
+    onRecordsChange?.(updater)
+  }
 
   const openSaleModal = () => {
     setSaleForm({
@@ -56,15 +64,23 @@ export function SalesView({ sales, ventures, products, onCreateSale }) {
     event.preventDefault()
     if (!selectedSaleVentureId) return
 
-    onCreateSale({
+    const totalUnits = Object.values(saleForm.selectedProducts || {}).reduce((sum, item) => sum + Number(item.quantity || 1), 0)
+    const newSale = {
+      id: createId('sale'),
       ventureId: selectedSaleVentureId,
       date: saleForm.date,
+      units: totalUnits || 1,
       amount: Number(saleForm.price || 0),
       phone: saleForm.phone,
       location: saleForm.location,
       selectedProducts: saleForm.selectedProducts,
       margin: saleForm.margin,
-    })
+    }
+
+    updateRecords((current) => ({
+      ...current,
+      sales: [...(current.sales || []), newSale],
+    }))
 
     closeSaleModal()
   }

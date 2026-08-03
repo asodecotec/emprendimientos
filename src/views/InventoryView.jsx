@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { EmptyState } from '../components/EmptyState'
 import { Modal } from '../components/Modal'
-import { convertUnitValue, formatMeasurement, formatMoney, normalizeUnit } from '../models/appModel'
+import { convertUnitValue, createId, formatMeasurement, formatMoney, normalizeUnit } from '../models/appModel'
 
 const UNIT_OPTIONS = [
   { value: 'ud', label: 'Unidades' },
@@ -20,11 +20,23 @@ const UNIT_OPTIONS = [
   { value: 'botella', label: 'Botellas' },
 ]
 
-export function InventoryView({ materials, filteredMaterials, search, onSearch, onCreateMaterial, onUpdateMaterial, onDeleteMaterial }) {
+export function InventoryView({ records, onRecordsChange }) {
+  const materials = records?.materials || []
+
+  const [search, setSearch] = useState('')
   const [materialForm, setMaterialForm] = useState({ name: '', unit: 'ud', cost: '', stock: '', pricePerUnit: '' })
   const [editingMaterial, setEditingMaterial] = useState(null)
   const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
+
+  const filteredMaterials = useMemo(() => {
+    const query = String(search || '').trim().toLocaleLowerCase('es-419')
+    return materials.filter((material) => `${material.name} ${material.unit}`.toLocaleLowerCase('es-419').includes(query))
+  }, [materials, search])
+
+  const updateRecords = (updater) => {
+    onRecordsChange?.(updater)
+  }
 
   const openMaterialModal = (material = null) => {
     setEditingMaterial(material)
@@ -58,9 +70,15 @@ export function InventoryView({ materials, filteredMaterials, search, onSearch, 
     if (!payload.name.trim()) return
 
     if (editingMaterial) {
-      onUpdateMaterial(editingMaterial.id, payload)
+      updateRecords((current) => ({
+        ...current,
+        materials: (current.materials || []).map((material) => material.id === editingMaterial.id ? { ...material, ...payload } : material),
+      }))
     } else {
-      onCreateMaterial(payload)
+      updateRecords((current) => ({
+        ...current,
+        materials: [...(current.materials || []), { id: createId('material'), ...payload }],
+      }))
     }
 
     closeMaterialModal()
@@ -77,7 +95,10 @@ export function InventoryView({ materials, filteredMaterials, search, onSearch, 
   const confirmDelete = () => {
     if (!pendingDelete) return
 
-    onDeleteMaterial(pendingDelete.id)
+    updateRecords((current) => ({
+      ...current,
+      materials: (current.materials || []).filter((material) => material.id !== pendingDelete.id),
+    }))
     closeDeleteConfirm()
   }
 
@@ -92,7 +113,7 @@ export function InventoryView({ materials, filteredMaterials, search, onSearch, 
         <button type='button' onClick={() => openMaterialModal()} className='rounded-full bg-[#168467] px-4 py-2 text-sm font-semibold text-white'>+ Nuevo material</button>
       </header>
 
-      <input value={search} onChange={(event) => onSearch(event.target.value)} placeholder='Buscar material' className='w-full max-w-md rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
+      <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder='Buscar material' className='w-full max-w-md rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
 
       <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
         {filteredMaterials.map((material) => (
