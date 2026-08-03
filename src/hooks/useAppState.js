@@ -1,25 +1,28 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createId, normalize, starterData } from '../models/appModel'
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  onSnapshot,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore'
+import { db } from '../../firebase'
+import { createId, normalize } from '../models/appModel'
 
-const STORAGE_KEY = 'asodeco-app-state-v1'
-const STORAGE_SHAPE = ['ventures', 'materials', 'purchases', 'fixedCosts', 'products', 'sales']
-
-const loadStoredState = () => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (STORAGE_SHAPE.every((key) => Array.isArray(parsed?.[key]))) return parsed
-    }
-  } catch (error) {
-    console.warn('No se pudo cargar el estado guardado', error)
-  }
-  return starterData
-}
+const COLLECTIONS = ['ventures', 'materials', 'purchases', 'fixedCosts', 'products', 'sales']
 
 export function useAppState() {
   const [view, setView] = useState('dashboard')
-  const [records, setRecords] = useState(loadStoredState)
+  const [ventures, setVentures] = useState([])
+  const [materials, setMaterials] = useState([])
+  const [fixedCosts, setFixedCosts] = useState([])
+  const [products, setProducts] = useState([])
+  const [sales, setSales] = useState([])
+  const [purchases, setPurchases] = useState([])
   const [search, setSearch] = useState('')
   const [ventureFilter, setVentureFilter] = useState('')
   const [modal, setModal] = useState(null)
@@ -27,28 +30,338 @@ export function useAppState() {
   const [draft, setDraft] = useState('')
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
-    } catch (error) {
-      console.warn('No se pudo guardar el estado', error)
-    }
-  }, [records])
+    const unsubscribes = COLLECTIONS.map((collectionName) => {
+      const collectionRef = collection(db, collectionName)
+      return onSnapshot(collectionRef, (snapshot) => {
+        const data = snapshot.docs.map((item) => ({ ...item.data(), id: item.id }))
+        switch (collectionName) {
+          case 'ventures':
+            setVentures(data)
+            break
+          case 'materials':
+            setMaterials(data)
+            break
+          case 'fixedCosts':
+            setFixedCosts(data)
+            break
+          case 'products':
+            setProducts(data)
+            break
+          case 'sales':
+            setSales(data)
+            break
+          case 'purchases':
+            setPurchases(data)
+            break
+          default:
+            break
+        }
+      })
+    })
 
-  const ventures = useMemo(() => records.ventures, [records.ventures])
-  const materials = useMemo(() => records.materials, [records.materials])
-  const fixedCosts = useMemo(() => records.fixedCosts, [records.fixedCosts])
-  const products = useMemo(() => records.products, [records.products])
-  const sales = useMemo(() => records.sales, [records.sales])
-  const purchases = useMemo(() => records.purchases, [records.purchases])
+    return () => unsubscribes.forEach((unsubscribe) => unsubscribe())
+  }, [])
+
+  const createCollectionDoc = async (collectionName, id, data) => {
+    await setDoc(doc(db, collectionName, id), { ...data, id })
+  }
+
+  const updateCollectionDoc = async (collectionName, id, data) => {
+    await updateDoc(doc(db, collectionName, id), data)
+  }
+
+  const deleteCollectionDoc = async (collectionName, id) => {
+    await deleteDoc(doc(db, collectionName, id))
+  }
+
+  const deleteDocumentsByQuery = async (collectionName, field, value) => {
+    const snapshot = await getDocs(query(collection(db, collectionName), where(field, '==', value)))
+    await Promise.all(snapshot.docs.map((item) => deleteDoc(item.ref)))
+  }
+
+  const openModal = (type, item = null) => {
+    setModal(type)
+    setActiveItem(item)
+    setDraft(item?.name || '')
+  }
+
+  const closeModal = () => {
+    setModal(null)
+    setActiveItem(null)
+    setDraft('')
+  }
+
+  const saveVenture = async (name, description) => {
+    const normalizedName = name.trim()
+    if (!normalizedName) return
+
+    const normalizedDescription = description.trim() || 'Nuevo emprendimiento'
+
+    try {
+      if (activeItem) {
+        await updateCollectionDoc('ventures', activeItem.id, {
+          name: normalizedName,
+          description: normalizedDescription,
+        })
+      } else {
+        const newVenture = {
+          name: normalizedName,
+          description: normalizedDescription,
+          products: 0,
+        }
+        await createCollectionDoc('ventures', createId('venture'), newVenture)
+      }
+    } catch (error) {
+      console.error('Error guardando emprendimiento:', error)
+    } finally {
+      closeModal()
+    }
+  }
+
+  const addMaterial = async (materialData = {}) => {
+    const normalizedName = String(materialData.name || '').trim()
+    const ventureId = materialData.ventureId
+    if (!normalizedName || !ventureId) return
+
+    const unit = materialData.unit || 'ud'
+    const stock = Math.max(Number(materialData.stock || 0), 0)
+    const unitPrice = Math.max(Number(materialData.unitPrice ?? materialData.cost ?? 10), 0)
+
+    const newMaterial = {
+      name: normalizedName,
+      unit,
+      cost: unitPrice,
+      unitPrice,
+      stock,
+      ventureId,
+    }
+
+    try {
+      await createCollectionDoc('materials', createId('material'), newMaterial)
+    } catch (error) {
+      console.error('Error agregando material:', error)
+    } finally {
+      closeModal()
+    }
+  }
+
+  const updateMaterial = async (materialId, materialData = {}) => {
+    const normalizedName = String(materialData.name || '').trim()
+    if (!normalizedName) return
+
+    const unit = materialData.unit || 'ud'
+    const stock = Math.max(Number(materialData.stock || 0), 0)
+    const unitPrice = Math.max(Number(materialData.unitPrice ?? materialData.cost ?? 0), 0)
+
+    try {
+      await updateCollectionDoc('materials', materialId, {
+        name: normalizedName,
+        unit,
+        cost: unitPrice,
+        unitPrice,
+        stock,
+        ventureId: materialData.ventureId || undefined,
+      })
+    } catch (error) {
+      console.error('Error actualizando material:', error)
+    } finally {
+      closeModal()
+    }
+  }
+
+  const createProduct = async ({ ventureId, name, description, cost, materials }) => {
+    const normalizedName = name.trim()
+    if (!normalizedName || !ventureId) return
+
+    const newProduct = {
+      ventureId,
+      name: normalizedName,
+      description: description.trim() || 'Producto nuevo',
+      cost: Number(cost || 0),
+      materials: materials || [],
+      fixedCostIds: [],
+    }
+
+    try {
+      await createCollectionDoc('products', createId('product'), newProduct)
+    } catch (error) {
+      console.error('Error creando producto:', error)
+    }
+  }
+
+  const updateProduct = async (productId, { name, description, cost, ventureId, materials }) => {
+    const normalizedName = name.trim()
+    if (!normalizedName) return
+
+    try {
+      await updateCollectionDoc('products', productId, {
+        name: normalizedName,
+        description: description.trim() || 'Producto nuevo',
+        cost: Number(cost || 0),
+        ventureId,
+        materials,
+      })
+    } catch (error) {
+      console.error('Error actualizando producto:', error)
+    }
+  }
+
+  const addSale = async (saleData = {}) => {
+    const ventureId = saleData.ventureId
+    if (!ventureId) return
+
+    const totalUnits = Object.values(saleData.selectedProducts || {}).reduce((sum, item) => sum + Number(item.quantity || 1), 0)
+
+    const newSale = {
+      ventureId,
+      date: saleData.date || new Date().toISOString().slice(0, 10),
+      units: totalUnits || 1,
+      amount: Number(saleData.amount || 0),
+      phone: saleData.phone || '',
+      location: saleData.location || '',
+      selectedProducts: saleData.selectedProducts || {},
+      margin: saleData.margin || '',
+    }
+
+    try {
+      await createCollectionDoc('sales', createId('sale'), newSale)
+    } catch (error) {
+      console.error('Error agregando venta:', error)
+    } finally {
+      closeModal()
+    }
+  }
+
+  const updateSale = async (saleId, saleData = {}) => {
+    if (!saleId) return
+
+    const totalUnits = Object.values(saleData.selectedProducts || {}).reduce((sum, item) => sum + Number(item.quantity || 1), 0)
+
+    try {
+      await updateCollectionDoc('sales', saleId, {
+        ventureId: saleData.ventureId,
+        date: saleData.date,
+        units: totalUnits || undefined,
+        amount: Number(saleData.amount || 0),
+        phone: saleData.phone || '',
+        location: saleData.location || '',
+        selectedProducts: saleData.selectedProducts || {},
+        margin: saleData.margin || '',
+      })
+    } catch (error) {
+      console.error('Error actualizando venta:', error)
+    } finally {
+      closeModal()
+    }
+  }
+
+  const removeSale = async (saleId) => {
+    try {
+      await deleteCollectionDoc('sales', saleId)
+    } catch (error) {
+      console.error('Error eliminando venta:', error)
+    }
+  }
+
+  const addPurchase = async ({ materialId, date, quantity, cost } = {}) => {
+    if (!materialId) return
+
+    const normalizedQuantity = Math.max(Number(quantity) || 0, 0)
+    const normalizedCost = Math.max(Number(cost) || 0, 0)
+    const newPurchase = {
+      materialId,
+      date: date || new Date().toISOString().slice(0, 10),
+      quantity: normalizedQuantity,
+      cost: normalizedCost,
+    }
+
+    try {
+      await createCollectionDoc('purchases', createId('purchase'), newPurchase)
+      const material = materials.find((item) => item.id === materialId)
+      if (material) {
+        const currentStock = Number(material.stock || 0)
+        await updateCollectionDoc('materials', materialId, { stock: currentStock + normalizedQuantity })
+      }
+    } catch (error) {
+      console.error('Error agregando compra:', error)
+    } finally {
+      closeModal()
+    }
+  }
+
+  const removePurchase = async (purchaseId) => {
+    try {
+      const purchase = purchases.find((item) => item.id === purchaseId)
+      await deleteCollectionDoc('purchases', purchaseId)
+      if (purchase) {
+        const material = materials.find((item) => item.id === purchase.materialId)
+        if (material) {
+          const currentStock = Number(material.stock || 0)
+          await updateCollectionDoc('materials', material.id, {
+            stock: Math.max(currentStock - Number(purchase.quantity || 0), 0),
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error eliminando compra:', error)
+    }
+  }
+
+  const removeVenture = async (ventureId) => {
+    try {
+      const materialSnapshot = await getDocs(query(collection(db, 'materials'), where('ventureId', '==', ventureId)))
+      const materialIds = materialSnapshot.docs.map((item) => item.id)
+
+      await Promise.all([
+        deleteCollectionDoc('ventures', ventureId),
+        deleteDocumentsByQuery('products', 'ventureId', ventureId),
+        deleteDocumentsByQuery('sales', 'ventureId', ventureId),
+        deleteDocumentsByQuery('fixedCosts', 'ventureId', ventureId),
+        ...materialIds.map((materialId) => deleteDocumentsByQuery('purchases', 'materialId', materialId)),
+      ])
+
+      await Promise.all(materialIds.map((materialId) => deleteCollectionDoc('materials', materialId)))
+    } catch (error) {
+      console.error('Error eliminando emprendimiento:', error)
+    }
+  }
+
+  const removeMaterial = async (materialId) => {
+    try {
+      await deleteDocumentsByQuery('purchases', 'materialId', materialId)
+
+      const productsSnapshot = await getDocs(collection(db, 'products'))
+      await Promise.all(
+        productsSnapshot.docs.map((productDoc) => {
+          const product = { ...productDoc.data(), id: productDoc.id }
+          const updatedMaterials = (product.materials || []).filter((item) => item.materialId !== materialId)
+          if (updatedMaterials.length === (product.materials || []).length) return Promise.resolve()
+          return updateCollectionDoc('products', product.id, { materials: updatedMaterials })
+        }),
+      )
+
+      await deleteCollectionDoc('materials', materialId)
+    } catch (error) {
+      console.error('Error eliminando material:', error)
+    }
+  }
+
+  const removeProduct = async (productId) => {
+    try {
+      await deleteCollectionDoc('products', productId)
+    } catch (error) {
+      console.error('Error eliminando producto:', error)
+    }
+  }
 
   const filteredVentures = useMemo(() => {
-    const query = normalize(search)
-    return ventures.filter((venture) => normalize(`${venture.name} ${venture.description}`).includes(query))
+    const queryText = normalize(search)
+    return ventures.filter((venture) => normalize(`${venture.name} ${venture.description}`).includes(queryText))
   }, [ventures, search])
 
   const filteredMaterials = useMemo(() => {
-    const query = normalize(search)
-    return materials.filter((material) => normalize(`${material.name} ${material.unit}`).includes(query))
+    const queryText = normalize(search)
+    return materials.filter((material) => normalize(`${material.name} ${material.unit}`).includes(queryText))
   }, [materials, search])
 
   const purchaseTotals = useMemo(() => {
@@ -78,27 +391,30 @@ export function useAppState() {
     return map
   }, [sales, products])
 
-  const materialsWithStock = useMemo(() => (
-    materials.map((material) => {
-      const totals = purchaseTotals[material.id] || { quantity: 0, cost: 0 }
-      const consumed = salesConsumption[material.id] || 0
-      const derivedStock = totals.quantity - consumed
-      const resolvedStock = material.stock != null ? Number(material.stock) : derivedStock
-      return {
-        ...material,
-        stock: resolvedStock,
-        avgCost: totals.quantity > 0 ? totals.cost / totals.quantity : material.cost,
-        unitPrice: Number(material.unitPrice ?? material.cost ?? 0),
-      }
-    })
-  ), [materials, purchaseTotals, salesConsumption])
+  const materialsWithStock = useMemo(
+    () =>
+      materials.map((material) => {
+        const totals = purchaseTotals[material.id] || { quantity: 0, cost: 0 }
+        const consumed = salesConsumption[material.id] || 0
+        const derivedStock = totals.quantity - consumed
+        const resolvedStock = material.stock != null ? Number(material.stock) : derivedStock
+        return {
+          ...material,
+          stock: resolvedStock,
+          avgCost: totals.quantity > 0 ? totals.cost / totals.quantity : material.cost,
+          unitPrice: Number(material.unitPrice ?? material.cost ?? 0),
+        }
+      }),
+    [materials, purchaseTotals, salesConsumption],
+  )
 
   const filteredMaterialsWithStock = useMemo(() => {
-    const query = normalize(search)
-    return materialsWithStock.filter((material) => (
-      (!ventureFilter || material.ventureId === ventureFilter) &&
-      normalize(`${material.name} ${material.unit}`).includes(query)
-    ))
+    const queryText = normalize(search)
+    return materialsWithStock.filter(
+      (material) =>
+        (!ventureFilter || material.ventureId === ventureFilter) &&
+        normalize(`${material.name} ${material.unit}`).includes(queryText),
+    )
   }, [materialsWithStock, search, ventureFilter])
 
   const filteredPurchases = useMemo(() => {
@@ -110,11 +426,12 @@ export function useAppState() {
   }, [purchases, materials, ventureFilter])
 
   const filteredProducts = useMemo(() => {
-    const query = normalize(search)
-    return products.filter((product) => (
-      (!ventureFilter || product.ventureId === ventureFilter) &&
-      normalize(`${product.name} ${product.description}`).includes(query)
-    ))
+    const queryText = normalize(search)
+    return products.filter(
+      (product) =>
+        (!ventureFilter || product.ventureId === ventureFilter) &&
+        normalize(`${product.name} ${product.description}`).includes(queryText),
+    )
   }, [products, ventureFilter, search])
 
   const filteredSales = useMemo(() => {
@@ -128,11 +445,11 @@ export function useAppState() {
   }, [fixedCosts, ventureFilter])
 
   const financeStats = useMemo(() => {
-    const filteredSales = ventureFilter ? sales.filter((sale) => sale.ventureId === ventureFilter) : sales
+    const filtered = ventureFilter ? sales.filter((sale) => sale.ventureId === ventureFilter) : sales
     return {
-      revenue: filteredSales.reduce((sum, item) => sum + Number(item.amount || 0), 0),
+      revenue: filtered.reduce((sum, item) => sum + Number(item.amount || 0), 0),
       costs: filteredFixedCosts.reduce((sum, item) => sum + Number(item.cost || 0), 0),
-      sales: filteredSales.length,
+      sales: filtered.length,
     }
   }, [sales, ventureFilter, filteredFixedCosts])
 
@@ -148,229 +465,9 @@ export function useAppState() {
     }
   }, [ventures.length, materials.length, products.length, sales, fixedCosts])
 
-  const openModal = (type, item = null) => {
-    setModal(type)
-    setActiveItem(item)
-    setDraft(item?.name || '')
-  }
-
-  const closeModal = () => {
-    setModal(null)
-    setActiveItem(null)
-    setDraft('')
-  }
-
-  const saveVenture = (name, description) => {
-    const normalizedName = name.trim()
-    if (!normalizedName) return
-
-    const normalizedDescription = description.trim() || 'Nuevo emprendimiento'
-
-    if (activeItem) {
-      setRecords((current) => ({
-        ...current,
-        ventures: current.ventures.map((venture) => venture.id === activeItem.id ? { ...venture, name: normalizedName, description: normalizedDescription } : venture),
-      }))
-    } else {
-      const newVenture = {
-        id: createId('venture'),
-        name: normalizedName,
-        description: normalizedDescription,
-        products: 0,
-      }
-
-      setRecords((current) => ({ ...current, ventures: [...current.ventures, newVenture] }))
-    }
-
-    closeModal()
-  }
-
-  const addMaterial = (materialData = {}) => {
-    const normalizedName = String(materialData.name || '').trim()
-    const ventureId = materialData.ventureId
-    if (!normalizedName || !ventureId) return
-
-    const unit = materialData.unit || 'ud'
-    const stock = Math.max(Number(materialData.stock || 0), 0)
-    const unitPrice = Math.max(Number(materialData.unitPrice ?? materialData.cost ?? 10), 0)
-
-    const newMaterial = {
-      id: createId('material'),
-      name: normalizedName,
-      unit,
-      cost: unitPrice,
-      unitPrice,
-      stock,
-      ventureId,
-    }
-
-    setRecords((current) => ({ ...current, materials: [...current.materials, newMaterial] }))
-    closeModal()
-  }
-
-  const updateMaterial = (materialId, materialData = {}) => {
-    const normalizedName = String(materialData.name || '').trim()
-    if (!normalizedName) return
-
-    const unit = materialData.unit || 'ud'
-    const stock = Math.max(Number(materialData.stock || 0), 0)
-    const unitPrice = Math.max(Number(materialData.unitPrice ?? materialData.cost ?? 0), 0)
-
-    setRecords((current) => ({
-      ...current,
-      materials: current.materials.map((material) => material.id === materialId ? {
-        ...material,
-        name: normalizedName,
-        unit,
-        cost: unitPrice,
-        unitPrice,
-        stock,
-        ventureId: materialData.ventureId || material.ventureId,
-      } : material),
-    }))
-    closeModal()
-  }
-
-  const createProduct = ({ ventureId, name, description, cost, materials }) => {
-    const normalizedName = name.trim()
-    if (!normalizedName || !ventureId) return
-
-    const newProduct = {
-      id: createId('product'),
-      ventureId,
-      name: normalizedName,
-      description: description.trim() || 'Producto nuevo',
-      cost: Number(cost || 0),
-      materials: materials || [],
-      fixedCostIds: [],
-    }
-
-    setRecords((current) => ({ ...current, products: [...current.products, newProduct] }))
-  }
-
-  const updateProduct = (productId, { name, description, cost, ventureId, materials }) => {
-    const normalizedName = name.trim()
-    if (!normalizedName) return
-
-    setRecords((current) => ({
-      ...current,
-      products: current.products.map((product) => product.id === productId ? { ...product, name: normalizedName, description: description.trim() || 'Producto nuevo', cost: Number(cost || 0), ventureId: ventureId || product.ventureId, materials: materials || product.materials } : product),
-    }))
-  }
-
-  const addSale = (saleData = {}) => {
-    const ventureId = saleData.ventureId
-    if (!ventureId) return
-
-    const totalUnits = Object.values(saleData.selectedProducts || {}).reduce((sum, item) => sum + Number(item.quantity || 1), 0)
-
-    const newSale = {
-      id: createId('sale'),
-      ventureId,
-      date: saleData.date || new Date().toISOString().slice(0, 10),
-      units: totalUnits || 1,
-      amount: Number(saleData.amount || 0),
-      phone: saleData.phone || '',
-      location: saleData.location || '',
-      selectedProducts: saleData.selectedProducts || {},
-      margin: saleData.margin || '',
-    }
-
-    setRecords((current) => ({ ...current, sales: [...current.sales, newSale] }))
-    closeModal()
-  }
-
-  const updateSale = (saleId, saleData = {}) => {
-    if (!saleId) return
-
-    const totalUnits = Object.values(saleData.selectedProducts || {}).reduce((sum, item) => sum + Number(item.quantity || 1), 0)
-
-    setRecords((current) => ({
-      ...current,
-      sales: current.sales.map((sale) => sale.id === saleId ? {
-        ...sale,
-        ventureId: saleData.ventureId || sale.ventureId,
-        date: saleData.date || sale.date,
-        units: totalUnits || sale.units,
-        amount: Number(saleData.amount || 0),
-        phone: saleData.phone || sale.phone || '',
-        location: saleData.location || sale.location || '',
-        selectedProducts: saleData.selectedProducts || sale.selectedProducts || {},
-        margin: saleData.margin || sale.margin || '',
-      } : sale),
-    }))
-    closeModal()
-  }
-
-  const removeSale = (saleId) => {
-    setRecords((current) => ({ ...current, sales: current.sales.filter((sale) => sale.id !== saleId) }))
-  }
-
-  const addPurchase = ({ materialId, date, quantity, cost } = {}) => {
-    if (!materialId) return
-
-    const normalizedQuantity = Math.max(Number(quantity) || 0, 0)
-    const normalizedCost = Math.max(Number(cost) || 0, 0)
-    const newPurchase = {
-      id: createId('purchase'),
-      materialId,
-      date: date || new Date().toISOString().slice(0, 10),
-      quantity: normalizedQuantity,
-      cost: normalizedCost,
-    }
-
-    setRecords((current) => {
-      const material = current.materials.find((item) => item.id === materialId)
-      const currentStock = material?.stock != null ? Number(material.stock) : 0
-      return {
-        ...current,
-        purchases: [...current.purchases, newPurchase],
-        materials: current.materials.map((item) => item.id === materialId ? { ...item, stock: currentStock + normalizedQuantity } : item),
-      }
-    })
-    closeModal()
-  }
-
-  const removePurchase = (purchaseId) => {
-    setRecords((current) => {
-      const purchase = current.purchases.find((item) => item.id === purchaseId)
-      return {
-        ...current,
-        purchases: current.purchases.filter((item) => item.id !== purchaseId),
-        materials: purchase ? current.materials.map((item) => item.id === purchase.materialId ? { ...item, stock: Math.max(Number(item.stock || 0) - Number(purchase.quantity || 0), 0) } : item) : current.materials,
-      }
-    })
-  }
-
-  const removeVenture = (ventureId) => {
-    setRecords((current) => ({
-      ...current,
-      ventures: current.ventures.filter((venture) => venture.id !== ventureId),
-      products: current.products.filter((product) => product.ventureId !== ventureId),
-      sales: current.sales.filter((sale) => sale.ventureId !== ventureId),
-    }))
-  }
-
-  const removeMaterial = (materialId) => {
-    setRecords((current) => ({
-      ...current,
-      materials: current.materials.filter((material) => material.id !== materialId),
-      products: current.products.map((product) => ({
-        ...product,
-        materials: (product.materials || []).filter((item) => item.materialId !== materialId),
-      })),
-    }))
-  }
-
-  const removeProduct = (productId) => {
-    setRecords((current) => ({ ...current, products: current.products.filter((product) => product.id !== productId) }))
-  }
-
   return {
     view,
     setView,
-    records,
-    setRecords,
     search,
     setSearch,
     ventureFilter,
