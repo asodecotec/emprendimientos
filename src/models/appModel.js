@@ -108,9 +108,9 @@ export const starterData = {
 //     { id: 'fixed-2', name: 'Transporte', cost: 95, ventureId: 'venture-2' },
 //   ],
 //   products: [
-//     { id: 'product-1', ventureId: 'venture-1', name: 'Combo clásico', description: 'Café + postre', cost: 48, materials: [{ materialId: 'material-1', quantity: 1 }, { materialId: 'material-2', quantity: 2 }] },
-//     { id: 'product-2', ventureId: 'venture-1', name: 'Especial frío', description: 'Bebida premium', cost: 61, materials: [{ materialId: 'material-1', quantity: 2 }] },
-//     { id: 'product-3', ventureId: 'venture-2', name: 'Pack artesanal', description: 'Kit de regalo', cost: 34, materials: [{ materialId: 'material-3', quantity: 4 }] },
+//     { id: 'product-1', ventureId: 'venture-1', name: 'Combo clásico', description: 'Café + postre', cost: 48, materials: { 'material-1': { quantity: 1 }, 'material-2': { quantity: 2 } } },
+//     { id: 'product-2', ventureId: 'venture-1', name: 'Especial frío', description: 'Bebida premium', cost: 61, materials: { 'material-1': { quantity: 2 } } },
+//     { id: 'product-3', ventureId: 'venture-2', name: 'Pack artesanal', description: 'Kit de regalo', cost: 34, materials: { 'material-3': { quantity: 4 } } },
 //   ],
 //   sales: [
 //     { id: 'sale-1', ventureId: 'venture-1', date: '2026-07-20', units: 6, amount: 360 },
@@ -144,9 +144,9 @@ export function normalize(value) {
 }
 
 export function getProductCost(product, materials, fixedCosts) {
-  const materialCost = (product.materials || []).reduce((sum, item) => {
-    const material = materials.find((m) => m.id === item.materialId)
-    return sum + (material ? Number(material.cost || 0) * Number(item.quantity || 1) : 0)
+  const materialCost = Object.entries(product.materials || {}).reduce((sum, [materialId, item]) => {
+    const material = materials.find((m) => m.id === materialId)
+    return sum + (material ? Number(0) * Number(item.quantity || 1) : 0)
   }, 0)
 
   const fixedCostTotal = (product.fixedCostIds || []).reduce((sum, id) => {

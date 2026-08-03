@@ -30,9 +30,9 @@ export function ProductsView({ products, filteredProducts, search, onSearch, mat
       <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
         {filteredProducts.map((product) => {
           const venture = ventures.find((item) => item.id === product.ventureId)
-          const productMaterials = (product.materials || [])
-            .map((item) => {
-              const material = materials.find((m) => m.id === item.materialId)
+          const productMaterials = Object.entries(product.materials || {})
+            .map(([materialId, item]) => {
+              const material = materials.find((m) => m.id === materialId)
               return material ? `${material.name} ×${item.quantity}` : null
             })
             .filter(Boolean)

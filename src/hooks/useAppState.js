@@ -107,7 +107,6 @@ export function useAppState() {
         const newVenture = {
           name: normalizedName,
           description: normalizedDescription,
-          products: 0,
         }
         await createCollectionDoc('ventures', createId('venture'), newVenture)
       }
@@ -123,16 +122,9 @@ export function useAppState() {
     const ventureId = materialData.ventureId
     if (!normalizedName || !ventureId) return
 
-    const unit = materialData.unit || 'ud'
-    const stock = Math.max(Number(materialData.stock || 0), 0)
-    const unitPrice = Math.max(Number(materialData.unitPrice ?? materialData.cost ?? 10), 0)
-
     const newMaterial = {
       name: normalizedName,
-      unit,
-      cost: unitPrice,
-      unitPrice,
-      stock,
+      unit: materialData.unit || 'ud',
       ventureId,
     }
 
@@ -149,19 +141,14 @@ export function useAppState() {
     const normalizedName = String(materialData.name || '').trim()
     if (!normalizedName) return
 
-    const unit = materialData.unit || 'ud'
-    const stock = Math.max(Number(materialData.stock || 0), 0)
-    const unitPrice = Math.max(Number(materialData.unitPrice ?? materialData.cost ?? 0), 0)
-
+    const updates = {
+      name: normalizedName,
+      unit: materialData.unit || 'ud',
+      ventureId: materialData.ventureId || undefined,
+    }
+    
     try {
-      await updateCollectionDoc('materials', materialId, {
-        name: normalizedName,
-        unit,
-        cost: unitPrice,
-        unitPrice,
-        stock,
-        ventureId: materialData.ventureId || undefined,
-      })
+      await updateCollectionDoc('materials', materialId, updates)
     } catch (error) {
       console.error('Error actualizando material:', error)
     } finally {
@@ -178,7 +165,7 @@ export function useAppState() {
       name: normalizedName,
       description: description.trim() || 'Producto nuevo',
       cost: Number(cost || 0),
-      materials: materials || [],
+      materials: materials || {},
       fixedCostIds: [],
     }
 
@@ -277,11 +264,6 @@ export function useAppState() {
 
     try {
       await createCollectionDoc('purchases', createId('purchase'), newPurchase)
-      const material = materials.find((item) => item.id === materialId)
-      if (material) {
-        const currentStock = Number(material.stock || 0)
-        await updateCollectionDoc('materials', materialId, { stock: currentStock + normalizedQuantity })
-      }
     } catch (error) {
       console.error('Error agregando compra:', error)
     } finally {
@@ -291,17 +273,7 @@ export function useAppState() {
 
   const removePurchase = async (purchaseId) => {
     try {
-      const purchase = purchases.find((item) => item.id === purchaseId)
       await deleteCollectionDoc('purchases', purchaseId)
-      if (purchase) {
-        const material = materials.find((item) => item.id === purchase.materialId)
-        if (material) {
-          const currentStock = Number(material.stock || 0)
-          await updateCollectionDoc('materials', material.id, {
-            stock: Math.max(currentStock - Number(purchase.quantity || 0), 0),
-          })
-        }
-      }
     } catch (error) {
       console.error('Error eliminando compra:', error)
     }
@@ -334,8 +306,9 @@ export function useAppState() {
       await Promise.all(
         productsSnapshot.docs.map((productDoc) => {
           const product = { ...productDoc.data(), id: productDoc.id }
-          const updatedMaterials = (product.materials || []).filter((item) => item.materialId !== materialId)
-          if (updatedMaterials.length === (product.materials || []).length) return Promise.resolve()
+          const updatedMaterials = { ...(product.materials || {}) }
+          if (!(materialId in updatedMaterials)) return Promise.resolve()
+          delete updatedMaterials[materialId]
           return updateCollectionDoc('products', product.id, { materials: updatedMaterials })
         }),
       )
@@ -382,9 +355,9 @@ export function useAppState() {
         const product = products.find((candidate) => candidate.id === productId)
         if (!product) return
         const saleQuantity = Number(item?.quantity || 1)
-        ;(product.materials || []).forEach((materialRef) => {
-          const entry = map[materialRef.materialId] || 0
-          map[materialRef.materialId] = entry + saleQuantity * Number(materialRef.quantity || 1)
+        Object.entries(product.materials || {}).forEach(([materialId, materialRef]) => {
+          const entry = map[materialId] || 0
+          map[materialId] = entry + saleQuantity * Number(materialRef.quantity || 1)
         })
       })
     })
@@ -396,13 +369,10 @@ export function useAppState() {
       materials.map((material) => {
         const totals = purchaseTotals[material.id] || { quantity: 0, cost: 0 }
         const consumed = salesConsumption[material.id] || 0
-        const derivedStock = totals.quantity - consumed
-        const resolvedStock = material.stock != null ? Number(material.stock) : derivedStock
         return {
           ...material,
-          stock: resolvedStock,
-          avgCost: totals.quantity > 0 ? totals.cost / totals.quantity : material.cost,
-          unitPrice: Number(material.unitPrice ?? material.cost ?? 0),
+          stock: totals.quantity - consumed,
+          avgCost: totals.quantity > 0 ? totals.cost / totals.quantity : 0,
         }
       }),
     [materials, purchaseTotals, salesConsumption],
@@ -410,8 +380,7 @@ export function useAppState() {
 
   const filteredMaterialsWithStock = useMemo(() => {
     const queryText = normalize(search)
-    return materialsWithStock.filter(
-      (material) =>
+    return materialsWithStock.filter((material) =>
         (!ventureFilter || material.ventureId === ventureFilter) &&
         normalize(`${material.name} ${material.unit}`).includes(queryText),
     )

@@ -36,7 +36,6 @@ export function InventoryView({ materials, filteredMaterials, search, onSearch, 
                 <div>
                   <h2 className='text-lg font-semibold text-slate-900'>{material.name}</h2>
                   <p className='mt-1 text-sm text-slate-500'>Unidad: {material.unit || 'ud'}</p>
-                  <p className='mt-1 text-sm text-slate-500'>Precio: {formatMoney(material.unitPrice ?? material.cost ?? 0)} / {material.unit || 'ud'}</p>
                   <p className='mt-1 text-sm font-semibold text-[#1769aa]'>{venture?.name || 'Sin emprendimiento'}</p>
                 </div>
                 <div className='flex gap-2'>
