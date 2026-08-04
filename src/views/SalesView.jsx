@@ -1,7 +1,11 @@
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-export function SalesView({ sales, ventures, products, ventureFilter, onVentureFilter, onOpenModal, onDelete }) {
+export function SalesView({ sales, ventures, products, ventureFilter, recent, onVentureFilter, onOpenModal, onDelete }) {
+  const splitIndex = sales.findIndex((sale) => !recent[sale.id])
+  const recentItems = splitIndex === -1 ? sales : sales.slice(0, splitIndex)
+  const dateItems = splitIndex === -1 ? [] : sales.slice(splitIndex)
+
   return (
     <section className='space-y-6'>
       <header className='flex flex-col justify-between gap-4 sm:flex-row sm:items-end'>
@@ -27,7 +31,7 @@ export function SalesView({ sales, ventures, products, ventureFilter, onVentureF
       <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
         {sales.length ? (
           <div className='space-y-3'>
-            {sales.map((sale) => {
+            {recentItems.map((sale) => {
               const venture = ventures.find((item) => item.id === sale.ventureId)
               const productCount = products.filter((product) => product.ventureId === sale.ventureId).length
               return (
@@ -37,7 +41,31 @@ export function SalesView({ sales, ventures, products, ventureFilter, onVentureF
                     <p className='mt-1 text-sm text-slate-500'>Fecha {sale.date} · {sale.units} unidades · {productCount} productos</p>
                   </div>
                   <div className='flex items-center gap-3'>
-                    <p className='text-lg font-semibold text-[#168467]'>{formatMoney(sale.amount)}</p>
+                    <div className='text-right'>
+                      <p className='text-lg font-semibold text-[#168467]'>{formatMoney(sale.amount)}</p>
+                      {Number(sale.shippingCost || 0) > 0 ? <p className='text-xs text-slate-500'>Envío {formatMoney(sale.shippingCost)}</p> : null}
+                    </div>
+                    <button type='button' onClick={() => onOpenModal('sale', sale)} className='rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100'>Editar</button>
+                    <button type='button' onClick={() => onDelete('sale', sale)} className='rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50'>Eliminar</button>
+                  </div>
+                </div>
+              )
+            })}
+            {recentItems.length > 0 && dateItems.length > 0 ? <hr className='border-slate-200' /> : null}
+            {dateItems.map((sale) => {
+              const venture = ventures.find((item) => item.id === sale.ventureId)
+              const productCount = products.filter((product) => product.ventureId === sale.ventureId).length
+              return (
+                <div key={sale.id} className='flex flex-col justify-between gap-3 rounded-2xl bg-slate-50 p-4 sm:flex-row sm:items-center'>
+                  <div>
+                    <h2 className='font-semibold text-slate-900'>{venture?.name || 'Emprendimiento'}</h2>
+                    <p className='mt-1 text-sm text-slate-500'>Fecha {sale.date} · {sale.units} unidades · {productCount} productos</p>
+                  </div>
+                  <div className='flex items-center gap-3'>
+                    <div className='text-right'>
+                      <p className='text-lg font-semibold text-[#168467]'>{formatMoney(sale.amount)}</p>
+                      {Number(sale.shippingCost || 0) > 0 ? <p className='text-xs text-slate-500'>Envío {formatMoney(sale.shippingCost)}</p> : null}
+                    </div>
                     <button type='button' onClick={() => onOpenModal('sale', sale)} className='rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100'>Editar</button>
                     <button type='button' onClick={() => onDelete('sale', sale)} className='rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50'>Eliminar</button>
                   </div>

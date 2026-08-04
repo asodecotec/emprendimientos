@@ -1,6 +1,6 @@
 import { MetricCard } from '../components/MetricCard'
 import { EmptyState } from '../components/EmptyState'
-import { formatMoney } from '../models/appModel'
+import { formatMoney, calculateFixedCostTotal, FIXED_COST_FREQUENCIES } from '../models/appModel'
 
 export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVentureFilter }) {
   return (
@@ -22,26 +22,42 @@ export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVent
         ))}
       </select>
 
-      <div className='grid gap-4 md:grid-cols-3'>
+      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
         <MetricCard title='Ingresos' value={formatMoney(stats.revenue)} accent='text-[#168467]' />
+        <MetricCard title='Costo total' value={formatMoney(stats.totalCosts)} accent='text-[#082d72]' />
+        <MetricCard title='Ganancia' value={formatMoney(stats.profit)} accent={stats.profit >= 0 ? 'text-[#168467]' : 'text-red-600'} />
+        <MetricCard title='Margen' value={`${stats.margin.toFixed(1)}%`} accent={stats.margin >= 0 ? 'text-[#168467]' : 'text-red-600'} />
+      </div>
+
+      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+        <MetricCard title='Costo de ventas' value={formatMoney(stats.saleCosts)} accent='text-[#082d72]' />
         <MetricCard title='Costos fijos' value={formatMoney(stats.costs)} accent='text-[#082d72]' />
+        <MetricCard title='Costos de envío' value={formatMoney(stats.shippingCosts)} accent='text-[#082d72]' />
         <MetricCard title='Ventas' value={stats.sales} accent='text-[#1769aa]' />
       </div>
 
       <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
         <h2 className='text-lg font-semibold text-slate-900'>Costos fijos</h2>
         <div className='mt-4 grid gap-4 md:grid-cols-2'>
-          {fixedCosts.map((item) => (
-            <div key={item.id} className='rounded-2xl bg-slate-50 p-4'>
-              <div className='flex items-center justify-between gap-3'>
-                <div>
-                  <h3 className='font-semibold text-slate-900'>{item.name}</h3>
-                  <p className='text-xs text-slate-500'>{item.ventureName || 'Sin emprendimiento'}</p>
+          {fixedCosts.map((item) => {
+            const freq = FIXED_COST_FREQUENCIES.find((f) => f.value === item.frequency)
+            const total = calculateFixedCostTotal(item)
+            return (
+              <div key={item.id} className='rounded-2xl bg-slate-50 p-4'>
+                <div className='flex items-center justify-between gap-3'>
+                  <div>
+                    <h3 className='font-semibold text-slate-900'>{item.name}</h3>
+                    <p className='text-xs text-slate-500'>{item.ventureName || 'Sin emprendimiento'}</p>
+                    <p className='mt-1 text-xs text-slate-500'>
+                      {formatMoney(item.cost)} / {freq?.label || 'Mensual'}
+                      {item.endDate ? ` · Hasta ${item.endDate}` : ''}
+                    </p>
+                  </div>
+                  <span className='shrink-0 text-sm font-semibold text-[#168467]'>{formatMoney(total)}</span>
                 </div>
-                <span className='shrink-0 text-sm font-semibold text-[#168467]'>{formatMoney(item.cost)}</span>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
         {fixedCosts.length === 0 ? <EmptyState title='Sin costos fijos' description='Agrega tus gastos recurrentes para incluirlos en la operación.' /> : null}
       </div>

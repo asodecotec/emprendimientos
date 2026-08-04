@@ -1,4 +1,5 @@
 export const MATERIAL_UNITS = [
+  { value: '', label: 'sin unidad' },
   { value: 'kg', label: 'kg' },
   { value: 'g', label: 'g' },
   { value: 'mg', label: 'mg' },
@@ -12,6 +13,13 @@ export const MATERIAL_UNITS = [
   { value: 'u', label: 'u' },
   { value: 'lb', label: 'lb' },
   { value: 'oz', label: 'oz' },
+]
+
+export const FIXED_COST_FREQUENCIES = [
+  { value: 'daily', label: 'Diario', days: 1 },
+  { value: 'weekly', label: 'Semanal', days: 7 },
+  { value: 'monthly', label: 'Mensual', days: 30 },
+  { value: 'yearly', label: 'Anual', days: 365 },
 ]
 
 const UNIT_ALIASES = {
@@ -46,7 +54,7 @@ const BASE_UNIT_FACTORS = {
 
 function normalizeUnit(unit) {
   const normalized = String(unit || '').trim().toLocaleLowerCase('es-419')
-  if (!normalized) return 'ud'
+  if (!normalized) return ''
   for (const [canonical, aliases] of Object.entries(UNIT_ALIASES)) {
     if (aliases.includes(normalized)) return canonical
   }
@@ -164,4 +172,27 @@ export function getProductMargins(product, materials, fixedCosts) {
     price: cost * 1.35,
     margin: ((cost * 1.35 - cost) / cost) * 100,
   }
+}
+
+export function calculateFixedCostTotal(fixedCost) {
+  const cost = Number(fixedCost.cost || 0)
+  const startDate = fixedCost.startDate
+  const endDate = fixedCost.endDate
+  const frequency = fixedCost.frequency || 'monthly'
+
+  if (!startDate || cost <= 0) return 0
+
+  const freq = FIXED_COST_FREQUENCIES.find((f) => f.value === frequency)
+  const intervalDays = freq?.days || 30
+
+  const start = new Date(startDate)
+  const end = endDate ? new Date(endDate) : new Date()
+
+  if (end < start) return 0
+
+  const diffMs = end.getTime() - start.getTime()
+  const diffDays = diffMs / (1000 * 60 * 60 * 24)
+  const intervals = Math.floor(diffDays / intervalDays)
+
+  return intervals * cost
 }

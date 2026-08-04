@@ -11,11 +11,12 @@ export function DashboardView({ stats, onNavigate }) {
         <p className='mt-2 text-sm text-slate-600'>Monitorea emprendimientos, inventario, costos y ventas desde una vista organizada.</p>
       </header>
 
-      <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
+      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-5'>
         <MetricCard title='Emprendimientos' value={stats.ventures} />
         <MetricCard title='Materiales' value={stats.materials} />
         <MetricCard title='Productos' value={stats.products} />
         <MetricCard title='Ingresos' value={formatMoney(stats.revenue)} accent='text-[#168467]' />
+        <MetricCard title='Envíos' value={formatMoney(stats.shippingCosts)} accent='text-[#082d72]' />
       </div>
 
       <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>

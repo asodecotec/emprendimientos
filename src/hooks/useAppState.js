@@ -11,12 +11,19 @@ import {
   where,
 } from 'firebase/firestore'
 import { db } from '../../firebase'
-import { createId, normalize } from '../models/appModel'
+import { createId, normalize, getProductCost, calculateFixedCostTotal } from '../models/appModel'
 
 const COLLECTIONS = ['ventures', 'materials', 'purchases', 'products', 'sales']
 
 const sortByRecent = (list, recent) =>
   [...list].sort((a, b) => (recent[b.id] || 0) - (recent[a.id] || 0))
+
+const sortByRecentAndDate = (list, recent) =>
+  [...list].sort((a, b) => {
+    const recentDiff = (recent[b.id] || 0) - (recent[a.id] || 0)
+    if (recentDiff !== 0) return recentDiff
+    return (b.date || '').localeCompare(a.date || '')
+  })
 
 export function useAppState() {
   const [view, setView] = useState('dashboard')
@@ -128,7 +135,7 @@ export function useAppState() {
 
     const newMaterial = {
       name: normalizedName,
-      unit: materialData.unit || 'ud',
+      unit: materialData.unit ?? '',
       ventureId,
     }
 
@@ -149,7 +156,7 @@ export function useAppState() {
 
     const updates = {
       name: normalizedName,
-      unit: materialData.unit || 'ud',
+      unit: materialData.unit ?? '',
       ventureId: materialData.ventureId || undefined,
     }
     
@@ -212,6 +219,7 @@ export function useAppState() {
       date: saleData.date || new Date().toISOString().slice(0, 10),
       units: totalUnits || 1,
       amount: Number(saleData.amount || 0),
+      shippingCost: Number(saleData.shippingCost || 0),
       phone: saleData.phone || '',
       location: saleData.location || '',
       selectedProducts: saleData.selectedProducts || {},
@@ -240,6 +248,7 @@ export function useAppState() {
         date: saleData.date,
         units: totalUnits || undefined,
         amount: Number(saleData.amount || 0),
+        shippingCost: Number(saleData.shippingCost || 0),
         phone: saleData.phone || '',
         location: saleData.location || '',
         selectedProducts: saleData.selectedProducts || {},
@@ -338,7 +347,7 @@ export function useAppState() {
     }
   }
 
-  const addFixedCost = async ({ ventureId, name, cost } = {}) => {
+  const addFixedCost = async ({ ventureId, name, cost, startDate, frequency } = {}) => {
     const normalizedName = String(name || '').trim()
     const normalizedCost = Math.max(Number(cost || 0), 0)
     if (!normalizedName || !ventureId) return
@@ -346,7 +355,13 @@ export function useAppState() {
     const venture = ventures.find((item) => item.id === ventureId)
     if (!venture) return
 
-    const newFixedCost = { id: createId('fixed'), name: normalizedName, cost: normalizedCost }
+    const newFixedCost = {
+      id: createId('fixed'),
+      name: normalizedName,
+      cost: normalizedCost,
+      startDate: startDate || new Date().toISOString().slice(0, 10),
+      frequency: frequency || 'monthly',
+    }
 
     try {
       await updateCollectionDoc('ventures', ventureId, {
@@ -360,7 +375,7 @@ export function useAppState() {
     }
   }
 
-  const updateFixedCost = async ({ ventureId, fixedCostId, name, cost } = {}) => {
+  const updateFixedCost = async ({ ventureId, fixedCostId, name, cost, startDate, frequency, endDate } = {}) => {
     const normalizedName = String(name || '').trim()
     const normalizedCost = Math.max(Number(cost || 0), 0)
     if (!normalizedName || !ventureId || !fixedCostId) return
@@ -369,7 +384,16 @@ export function useAppState() {
     if (!venture) return
 
     const updatedFixedCosts = (venture.fixedCosts || []).map((item) =>
-      item.id === fixedCostId ? { ...item, name: normalizedName, cost: normalizedCost } : item,
+      item.id === fixedCostId
+        ? {
+            ...item,
+            name: normalizedName,
+            cost: normalizedCost,
+            startDate: startDate ?? item.startDate,
+            frequency: frequency ?? item.frequency,
+            endDate: endDate !== undefined ? endDate : item.endDate,
+          }
+        : item,
     )
 
     try {
@@ -465,8 +489,8 @@ export function useAppState() {
   }, [materialsWithStock, search, ventureFilter, recent])
 
   const filteredPurchases = useMemo(() => {
-    if (!ventureFilter) return sortByRecent(purchases, recent)
-    return sortByRecent(
+    if (!ventureFilter) return sortByRecentAndDate(purchases, recent)
+    return sortByRecentAndDate(
       purchases.filter((purchase) => {
         const material = materials.find((item) => item.id === purchase.materialId)
         return material?.ventureId === ventureFilter
@@ -488,8 +512,8 @@ export function useAppState() {
   }, [products, ventureFilter, search, recent])
 
   const filteredSales = useMemo(() => {
-    if (!ventureFilter) return sortByRecent(sales, recent)
-    return sortByRecent(sales.filter((sale) => sale.ventureId === ventureFilter), recent)
+    if (!ventureFilter) return sortByRecentAndDate(sales, recent)
+    return sortByRecentAndDate(sales.filter((sale) => sale.ventureId === ventureFilter), recent)
   }, [sales, ventureFilter, recent])
 
   const fixedCosts = useMemo(
@@ -507,21 +531,46 @@ export function useAppState() {
 
   const financeStats = useMemo(() => {
     const filtered = ventureFilter ? sales.filter((sale) => sale.ventureId === ventureFilter) : sales
+
+    const saleCosts = filtered.reduce((sum, sale) => {
+      const productsInSale = Object.entries(sale.selectedProducts || {})
+      return sum + productsInSale.reduce((productSum, [productId, item]) => {
+        const product = products.find((p) => p.id === productId)
+        if (!product) return productSum
+        const cost = getProductCost(product, materials, fixedCosts)
+        return productSum + cost * Number(item.quantity || 1)
+      }, 0)
+    }, 0)
+
+    const revenue = filtered.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+    const shippingCosts = filtered.reduce((sum, item) => sum + Number(item.shippingCost || 0), 0)
+    const fixedCostsTotal = filteredFixedCosts.reduce((sum, item) => sum + calculateFixedCostTotal(item), 0)
+    const totalCosts = saleCosts + shippingCosts + fixedCostsTotal
+    const profit = revenue - totalCosts
+    const margin = revenue > 0 ? (profit / revenue) * 100 : 0
+
     return {
-      revenue: filtered.reduce((sum, item) => sum + Number(item.amount || 0), 0),
-      costs: filteredFixedCosts.reduce((sum, item) => sum + Number(item.cost || 0), 0),
+      revenue,
+      saleCosts,
+      shippingCosts,
+      costs: fixedCostsTotal,
+      totalCosts,
+      profit,
+      margin,
       sales: filtered.length,
     }
-  }, [sales, ventureFilter, filteredFixedCosts])
+  }, [sales, products, materials, fixedCosts, ventureFilter, filteredFixedCosts])
 
   const stats = useMemo(() => {
     const revenue = sales.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+    const shippingCosts = sales.reduce((sum, item) => sum + Number(item.shippingCost || 0), 0)
     return {
       ventures: ventures.length,
       materials: materials.length,
       products: products.length,
       sales: sales.length,
       revenue,
+      shippingCosts,
       costs: fixedCosts.reduce((sum, item) => sum + Number(item.cost || 0), 0),
     }
   }, [ventures.length, materials.length, products.length, sales, fixedCosts])
@@ -555,6 +604,7 @@ export function useAppState() {
     filteredFixedCosts,
     financeStats,
     stats,
+    recent,
     saveVenture,
     addMaterial,
     updateMaterial,
