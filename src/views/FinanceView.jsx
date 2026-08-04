@@ -33,9 +33,12 @@ export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVent
         <div className='mt-4 grid gap-4 md:grid-cols-2'>
           {fixedCosts.map((item) => (
             <div key={item.id} className='rounded-2xl bg-slate-50 p-4'>
-              <div className='flex items-center justify-between'>
-                <h3 className='font-semibold text-slate-900'>{item.name}</h3>
-                <span className='text-sm font-semibold text-[#168467]'>{formatMoney(item.cost)}</span>
+              <div className='flex items-center justify-between gap-3'>
+                <div>
+                  <h3 className='font-semibold text-slate-900'>{item.name}</h3>
+                  <p className='text-xs text-slate-500'>{item.ventureName || 'Sin emprendimiento'}</p>
+                </div>
+                <span className='shrink-0 text-sm font-semibold text-[#168467]'>{formatMoney(item.cost)}</span>
               </div>
             </div>
           ))}

@@ -13,13 +13,15 @@ import {
 import { db } from '../../firebase'
 import { createId, normalize } from '../models/appModel'
 
-const COLLECTIONS = ['ventures', 'materials', 'purchases', 'fixedCosts', 'products', 'sales']
+const COLLECTIONS = ['ventures', 'materials', 'purchases', 'products', 'sales']
+
+const sortByRecent = (list, recent) =>
+  [...list].sort((a, b) => (recent[b.id] || 0) - (recent[a.id] || 0))
 
 export function useAppState() {
   const [view, setView] = useState('dashboard')
   const [ventures, setVentures] = useState([])
   const [materials, setMaterials] = useState([])
-  const [fixedCosts, setFixedCosts] = useState([])
   const [products, setProducts] = useState([])
   const [sales, setSales] = useState([])
   const [purchases, setPurchases] = useState([])
@@ -28,6 +30,9 @@ export function useAppState() {
   const [modal, setModal] = useState(null)
   const [activeItem, setActiveItem] = useState(null)
   const [draft, setDraft] = useState('')
+  const [recent, setRecent] = useState({})
+
+  const markRecent = (id) => setRecent((current) => ({ ...current, [id]: Date.now() }))
 
   useEffect(() => {
     const unsubscribes = COLLECTIONS.map((collectionName) => {
@@ -40,9 +45,6 @@ export function useAppState() {
             break
           case 'materials':
             setMaterials(data)
-            break
-          case 'fixedCosts':
-            setFixedCosts(data)
             break
           case 'products':
             setProducts(data)
@@ -108,7 +110,9 @@ export function useAppState() {
           name: normalizedName,
           description: normalizedDescription,
         }
-        await createCollectionDoc('ventures', createId('venture'), newVenture)
+        const newVentureId = createId('venture')
+        await createCollectionDoc('ventures', newVentureId, newVenture)
+        markRecent(newVentureId)
       }
     } catch (error) {
       console.error('Error guardando emprendimiento:', error)
@@ -129,7 +133,9 @@ export function useAppState() {
     }
 
     try {
-      await createCollectionDoc('materials', createId('material'), newMaterial)
+      const newMaterialId = createId('material')
+      await createCollectionDoc('materials', newMaterialId, newMaterial)
+      markRecent(newMaterialId)
     } catch (error) {
       console.error('Error agregando material:', error)
     } finally {
@@ -170,7 +176,9 @@ export function useAppState() {
     }
 
     try {
-      await createCollectionDoc('products', createId('product'), newProduct)
+      const newProductId = createId('product')
+      await createCollectionDoc('products', newProductId, newProduct)
+      markRecent(newProductId)
     } catch (error) {
       console.error('Error creando producto:', error)
     }
@@ -211,7 +219,9 @@ export function useAppState() {
     }
 
     try {
-      await createCollectionDoc('sales', createId('sale'), newSale)
+      const newSaleId = createId('sale')
+      await createCollectionDoc('sales', newSaleId, newSale)
+      markRecent(newSaleId)
     } catch (error) {
       console.error('Error agregando venta:', error)
     } finally {
@@ -263,7 +273,9 @@ export function useAppState() {
     }
 
     try {
-      await createCollectionDoc('purchases', createId('purchase'), newPurchase)
+      const newPurchaseId = createId('purchase')
+      await createCollectionDoc('purchases', newPurchaseId, newPurchase)
+      markRecent(newPurchaseId)
     } catch (error) {
       console.error('Error agregando compra:', error)
     } finally {
@@ -288,7 +300,6 @@ export function useAppState() {
         deleteCollectionDoc('ventures', ventureId),
         deleteDocumentsByQuery('products', 'ventureId', ventureId),
         deleteDocumentsByQuery('sales', 'ventureId', ventureId),
-        deleteDocumentsByQuery('fixedCosts', 'ventureId', ventureId),
         ...materialIds.map((materialId) => deleteDocumentsByQuery('purchases', 'materialId', materialId)),
       ])
 
@@ -327,15 +338,79 @@ export function useAppState() {
     }
   }
 
+  const addFixedCost = async ({ ventureId, name, cost } = {}) => {
+    const normalizedName = String(name || '').trim()
+    const normalizedCost = Math.max(Number(cost || 0), 0)
+    if (!normalizedName || !ventureId) return
+
+    const venture = ventures.find((item) => item.id === ventureId)
+    if (!venture) return
+
+    const newFixedCost = { id: createId('fixed'), name: normalizedName, cost: normalizedCost }
+
+    try {
+      await updateCollectionDoc('ventures', ventureId, {
+        fixedCosts: [...(venture.fixedCosts || []), newFixedCost],
+      })
+      markRecent(newFixedCost.id)
+    } catch (error) {
+      console.error('Error agregando costo fijo:', error)
+    } finally {
+      closeModal()
+    }
+  }
+
+  const updateFixedCost = async ({ ventureId, fixedCostId, name, cost } = {}) => {
+    const normalizedName = String(name || '').trim()
+    const normalizedCost = Math.max(Number(cost || 0), 0)
+    if (!normalizedName || !ventureId || !fixedCostId) return
+
+    const venture = ventures.find((item) => item.id === ventureId)
+    if (!venture) return
+
+    const updatedFixedCosts = (venture.fixedCosts || []).map((item) =>
+      item.id === fixedCostId ? { ...item, name: normalizedName, cost: normalizedCost } : item,
+    )
+
+    try {
+      await updateCollectionDoc('ventures', ventureId, { fixedCosts: updatedFixedCosts })
+    } catch (error) {
+      console.error('Error actualizando costo fijo:', error)
+    } finally {
+      closeModal()
+    }
+  }
+
+  const removeFixedCost = async ({ ventureId, fixedCostId } = {}) => {
+    if (!ventureId || !fixedCostId) return
+
+    const venture = ventures.find((item) => item.id === ventureId)
+    if (!venture) return
+
+    const updatedFixedCosts = (venture.fixedCosts || []).filter((item) => item.id !== fixedCostId)
+
+    try {
+      await updateCollectionDoc('ventures', ventureId, { fixedCosts: updatedFixedCosts })
+    } catch (error) {
+      console.error('Error eliminando costo fijo:', error)
+    }
+  }
+
   const filteredVentures = useMemo(() => {
     const queryText = normalize(search)
-    return ventures.filter((venture) => normalize(`${venture.name} ${venture.description}`).includes(queryText))
-  }, [ventures, search])
+    return sortByRecent(
+      ventures.filter((venture) => normalize(`${venture.name} ${venture.description}`).includes(queryText)),
+      recent,
+    )
+  }, [ventures, search, recent])
 
   const filteredMaterials = useMemo(() => {
     const queryText = normalize(search)
-    return materials.filter((material) => normalize(`${material.name} ${material.unit}`).includes(queryText))
-  }, [materials, search])
+    return sortByRecent(
+      materials.filter((material) => normalize(`${material.name} ${material.unit}`).includes(queryText)),
+      recent,
+    )
+  }, [materials, search, recent])
 
   const purchaseTotals = useMemo(() => {
     const map = {}
@@ -380,38 +455,55 @@ export function useAppState() {
 
   const filteredMaterialsWithStock = useMemo(() => {
     const queryText = normalize(search)
-    return materialsWithStock.filter((material) =>
-        (!ventureFilter || material.ventureId === ventureFilter) &&
-        normalize(`${material.name} ${material.unit}`).includes(queryText),
+    return sortByRecent(
+      materialsWithStock.filter((material) =>
+          (!ventureFilter || material.ventureId === ventureFilter) &&
+          normalize(`${material.name} ${material.unit}`).includes(queryText),
+      ),
+      recent,
     )
-  }, [materialsWithStock, search, ventureFilter])
+  }, [materialsWithStock, search, ventureFilter, recent])
 
   const filteredPurchases = useMemo(() => {
-    if (!ventureFilter) return purchases
-    return purchases.filter((purchase) => {
-      const material = materials.find((item) => item.id === purchase.materialId)
-      return material?.ventureId === ventureFilter
-    })
-  }, [purchases, materials, ventureFilter])
+    if (!ventureFilter) return sortByRecent(purchases, recent)
+    return sortByRecent(
+      purchases.filter((purchase) => {
+        const material = materials.find((item) => item.id === purchase.materialId)
+        return material?.ventureId === ventureFilter
+      }),
+      recent,
+    )
+  }, [purchases, materials, ventureFilter, recent])
 
   const filteredProducts = useMemo(() => {
     const queryText = normalize(search)
-    return products.filter(
-      (product) =>
-        (!ventureFilter || product.ventureId === ventureFilter) &&
-        normalize(`${product.name} ${product.description}`).includes(queryText),
+    return sortByRecent(
+      products.filter(
+        (product) =>
+          (!ventureFilter || product.ventureId === ventureFilter) &&
+          normalize(`${product.name} ${product.description}`).includes(queryText),
+      ),
+      recent,
     )
-  }, [products, ventureFilter, search])
+  }, [products, ventureFilter, search, recent])
 
   const filteredSales = useMemo(() => {
-    if (!ventureFilter) return sales
-    return sales.filter((sale) => sale.ventureId === ventureFilter)
-  }, [sales, ventureFilter])
+    if (!ventureFilter) return sortByRecent(sales, recent)
+    return sortByRecent(sales.filter((sale) => sale.ventureId === ventureFilter), recent)
+  }, [sales, ventureFilter, recent])
+
+  const fixedCosts = useMemo(
+    () =>
+      ventures.flatMap((venture) =>
+        (venture.fixedCosts || []).map((item) => ({ ...item, ventureId: venture.id, ventureName: venture.name })),
+      ),
+    [ventures],
+  )
 
   const filteredFixedCosts = useMemo(() => {
-    if (!ventureFilter) return fixedCosts
-    return fixedCosts.filter((item) => item.ventureId === ventureFilter)
-  }, [fixedCosts, ventureFilter])
+    if (!ventureFilter) return sortByRecent(fixedCosts, recent)
+    return sortByRecent(fixedCosts.filter((item) => item.ventureId === ventureFilter), recent)
+  }, [fixedCosts, ventureFilter, recent])
 
   const financeStats = useMemo(() => {
     const filtered = ventureFilter ? sales.filter((sale) => sale.ventureId === ventureFilter) : sales
@@ -476,5 +568,8 @@ export function useAppState() {
     removeVenture,
     removeMaterial,
     removeProduct,
+    addFixedCost,
+    updateFixedCost,
+    removeFixedCost,
   }
 }

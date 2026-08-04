@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { EmptyState } from '../components/EmptyState'
 import { Modal } from '../components/Modal'
+import { formatMoney } from '../models/appModel'
 
-export function VenturesView({ ventures, products, filteredVentures, search, onSearch, onOpenModal, onDelete, onNavigateToSection }) {
+export function VenturesView({ ventures, products, filteredVentures, search, onSearch, onOpenModal, onDelete, onNavigateToSection, onAddFixedCost, onEditFixedCost, onDeleteFixedCost }) {
   const [pendingDelete, setPendingDelete] = useState(null)
 
   const openDeleteConfirm = (venture) => {
@@ -48,6 +49,30 @@ export function VenturesView({ ventures, products, filteredVentures, search, onS
                   <button type='button' onClick={() => onOpenModal('venture', venture)} className='rounded-full border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700'>Editar</button>
                   <button type='button' onClick={() => openDeleteConfirm(venture)} className='rounded-full border border-red-200 px-3 py-2 text-sm font-semibold text-red-700'>Eliminar</button>
                 </div>
+              </div>
+              <div className='mt-4 border-t border-slate-100 pt-4'>
+                <div className='mb-2 flex items-center justify-between'>
+                  <p className='text-xs font-semibold uppercase tracking-[0.2em] text-slate-400'>Costos fijos</p>
+                  <button type='button' onClick={() => onAddFixedCost(venture)} className='rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50'>+ Agregar</button>
+                </div>
+                {venture.fixedCosts?.length ? (
+                  <ul className='space-y-2'>
+                    {venture.fixedCosts.map((item) => (
+                      <li key={item.id} className='flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-2.5'>
+                        <div>
+                          <p className='text-sm font-semibold text-slate-900'>{item.name}</p>
+                          <p className='text-sm font-semibold text-[#168467]'>{formatMoney(item.cost)}</p>
+                        </div>
+                        <div className='flex shrink-0 gap-2'>
+                          <button type='button' onClick={() => onEditFixedCost(venture, item)} className='rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100'>Editar</button>
+                          <button type='button' onClick={() => onDeleteFixedCost(venture, item)} className='rounded-full border border-red-200 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50'>Eliminar</button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className='text-sm text-slate-400'>Sin costos fijos registrados.</p>
+                )}
               </div>
               <div className='mt-4 border-t border-slate-100 pt-4'>
                 <p className='mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400'>Secciones</p>

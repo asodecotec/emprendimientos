@@ -146,7 +146,7 @@ export function normalize(value) {
 export function getProductCost(product, materials, fixedCosts) {
   const materialCost = Object.entries(product.materials || {}).reduce((sum, [materialId, item]) => {
     const material = materials.find((m) => m.id === materialId)
-    return sum + (material ? Number(0) * Number(item.quantity || 1) : 0)
+    return sum + (material ? Number(material.cost || 0) * Number(item.quantity || 1) : 0)
   }, 0)
 
   const fixedCostTotal = (product.fixedCostIds || []).reduce((sum, id) => {
