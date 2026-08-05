@@ -1,7 +1,7 @@
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-export function PurchasesView({ purchases, filteredPurchases, materials, ventures, ventureFilter, recent, onVentureFilter, onOpenModal, onDelete, canEdit }) {
+export function PurchasesView({ purchases, filteredPurchases, materials, ventures, ventureFilter, recent, search, onSearch, onVentureFilter, onOpenModal, onDelete, canEdit }) {
   const splitIndex = filteredPurchases.findIndex((purchase) => !recent[purchase.id])
   const recentItems = splitIndex === -1 ? filteredPurchases : filteredPurchases.slice(0, splitIndex)
   const dateItems = splitIndex === -1 ? [] : filteredPurchases.slice(splitIndex)
@@ -19,17 +19,19 @@ export function PurchasesView({ purchases, filteredPurchases, materials, venture
           <button type='button' onClick={() => onOpenModal()} className='rounded-full bg-[#168467] px-4 py-2 text-sm font-semibold text-white'>+ Nueva compra</button>
         ) : null}
       </header>
-
-      <select
-        value={ventureFilter}
-        onChange={(event) => onVentureFilter(event.target.value)}
-        className='rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none sm:max-w-xs'
-      >
-        <option value=''>Todos los emprendimientos</option>
-        {ventures.map((venture) => (
-          <option key={venture.id} value={venture.id}>{venture.name}</option>
-        ))}
-      </select>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+        <select
+          value={ventureFilter}
+          onChange={(event) => onVentureFilter(event.target.value)}
+          className='rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none sm:max-w-xs'
+        >
+          <option value=''>Todos los emprendimientos</option>
+          {ventures.map((venture) => (
+            <option key={venture.id} value={venture.id}>{venture.name}</option>
+          ))}
+        </select>
+        <input value={search} onChange={(event) => onSearch(event.target.value)} placeholder='Buscar compra' className='w-full max-w-md rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
+      </div>
 
       <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
         {filteredPurchases.length ? (

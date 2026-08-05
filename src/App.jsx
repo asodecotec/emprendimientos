@@ -106,6 +106,7 @@ function App() {
     price: '',
     shippingCost: '',
     margin: '',
+    paid: false,
     soldProducts: [{ productId: '', quantity: 1 }],
   })
 
@@ -166,7 +167,7 @@ function App() {
       updateFixedCost({
         ...payload,
         fixedCostId: activeItem.id,
-        endDate: fixedCostForm.endDate || undefined,
+        endDate: fixedCostForm.endDate || null,
       })
     } else {
       addFixedCost(payload)
@@ -202,6 +203,7 @@ function App() {
       price: sale?.amount != null ? String(sale.amount) : '',
       shippingCost: sale?.shippingCost != null ? String(sale.shippingCost) : '',
       margin: sale?.margin || '',
+      paid: sale?.paid || false,
       soldProducts: prefilledSoldProducts.length ? prefilledSoldProducts : [{ productId: '', quantity: 1 }],
     })
   }, [openModal, ventureFilter, canOpenModal])
@@ -318,11 +320,11 @@ function App() {
     if (view === 'ventures') return <VenturesView ventures={ventures} products={products} filteredVentures={filteredVentures} search={search} onSearch={setSearch} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'venture') handleOpenVentureModal(item) }} onNavigateToSection={handleNavigateToVentureSection} onDelete={(type, item) => { if (type === 'venture' && canDelete) removeVenture(item.id) }} onAddFixedCost={(venture) => handleOpenFixedCostModal(venture)} onEditFixedCost={(venture, item) => handleOpenFixedCostModal(venture, item)} onDeleteFixedCost={(venture, item) => { if (canDelete) removeFixedCost({ ventureId: venture.id, fixedCostId: item.id }) }} />
     if (view === 'products') return <ProductsView products={products} filteredProducts={filteredProducts} search={search} onSearch={setSearch} materials={materials} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'product') handleOpenProductModal(item) }} onDelete={(type, item) => { if (type === 'product' && canDelete) removeProduct(item.id) }} />
     if (view === 'inventory') return <InventoryView materials={materialsWithStock} filteredMaterials={filteredMaterialsWithStock} search={search} onSearch={setSearch} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'material') handleOpenMaterialModal(item) }} onDelete={(type, item) => { if (type === 'material' && canDelete) removeMaterial(item.id) }} />
-    if (view === 'purchases') return <PurchasesView purchases={purchases} filteredPurchases={filteredPurchases} materials={materials} ventures={ventures} ventureFilter={ventureFilter} recent={recent} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={handleOpenPurchaseModal} onDelete={(type, item) => { if (type === 'purchase' && canDelete) removePurchase(item.id) }} />
+    if (view === 'purchases') return <PurchasesView purchases={purchases} filteredPurchases={filteredPurchases} materials={materials} ventures={ventures} ventureFilter={ventureFilter} recent={recent} search={search} onSearch={setSearch} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={handleOpenPurchaseModal} onDelete={(type, item) => { if (type === 'purchase' && canDelete) removePurchase(item.id) }} />
     if (view === 'finance') return <FinanceView fixedCosts={filteredFixedCosts} stats={financeStats} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} />
-    if (view === 'sales') return <SalesView sales={filteredSales} ventures={ventures} products={products} ventureFilter={ventureFilter} recent={recent} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'sale') handleOpenSaleModal(item) }} onDelete={(type, item) => { if (type === 'sale' && canDelete) removeSale(item.id) }} />
+    if (view === 'sales') return <SalesView sales={filteredSales} ventures={ventures} products={products} ventureFilter={ventureFilter} recent={recent} search={search} onSearch={setSearch} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'sale') handleOpenSaleModal(item) }} onDelete={(type, item) => { if (type === 'sale' && canDelete) removeSale(item.id) }} onTogglePaid={(sale) => updateSale(sale.id, { ...sale, paid: !sale.paid })} />
     return <DashboardView stats={stats} onNavigate={setView} />
-  }, [financeStats, filteredFixedCosts, filteredMaterialsWithStock, filteredProducts, filteredPurchases, filteredSales, filteredVentures, handleNavigateToVentureSection, handleOpenFixedCostModal, handleOpenMaterialModal, handleOpenProductModal, handleOpenPurchaseModal, handleOpenSaleModal, handleOpenVentureModal, materials, materialsWithStock, products, purchases, recent, removeFixedCost, removeMaterial, removeProduct, removePurchase, removeSale, removeVenture, search, setSearch, setView, setVentureFilter, stats, ventures, ventureFilter, view, canEdit, canDelete])
+  }, [financeStats, filteredFixedCosts, filteredMaterialsWithStock, filteredProducts, filteredPurchases, filteredSales, filteredVentures, handleNavigateToVentureSection, handleOpenFixedCostModal, handleOpenMaterialModal, handleOpenProductModal, handleOpenPurchaseModal, handleOpenSaleModal, handleOpenVentureModal, materials, materialsWithStock, products, purchases, recent, removeFixedCost, removeMaterial, removeProduct, removePurchase, removeSale, removeVenture, search, setSearch, setView, setVentureFilter, stats, updateSale, ventures, ventureFilter, view, canEdit, canDelete])
 
   const renderModalContent = () => {
     if (!modal) return null
@@ -650,6 +652,7 @@ function App() {
                   location: saleForm.location,
                   selectedProducts: soldProductsMap,
                   margin: saleForm.margin,
+                  paid: saleForm.paid,
                 }
                 if (activeItem) updateSale(activeItem.id, payload)
                 else addSale(payload)
@@ -688,6 +691,16 @@ function App() {
                 placeholder='Ciudad, punto de venta o referencia'
                 className='w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[#082d72]'
               />
+            </label>
+
+            <label className='flex items-center gap-3'>
+              <input
+                type='checkbox'
+                checked={saleForm.paid}
+                onChange={(event) => setSaleForm((current) => ({ ...current, paid: event.target.checked }))}
+                className='h-4 w-4 rounded border-slate-300 text-[#082d72] focus:ring-[#082d72]'
+              />
+              <span className='text-sm font-semibold text-slate-700'>Pagada</span>
             </label>
 
             <label className='block'>
@@ -927,7 +940,7 @@ function App() {
   return (
     <div className='min-h-screen bg-[#f6f3eb] text-slate-800'>
       <div className='flex min-h-screen flex-col lg:flex-row'>
-        <Sidebar currentView={view} onNavigate={setView} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar currentView={view} onNavigate={setView} open={sidebarOpen} onClose={() => setSidebarOpen(false)} userEmail={user?.email} onLogout={logout} />
 
         <main className='flex-1 p-4 sm:p-6 lg:p-8'>
           <div className='mb-4 flex items-center justify-between lg:hidden'>

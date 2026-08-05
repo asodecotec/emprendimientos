@@ -1,13 +1,13 @@
 import { NAV_ITEMS } from '../models/appModel'
 
-export function Sidebar({ currentView, onNavigate, open, onClose }) {
+export function Sidebar({ currentView, onNavigate, open, onClose, userEmail, onLogout }) {
   return (
     <>
       <div
         className={`fixed inset-0 z-40 bg-black/50 transition-opacity lg:hidden ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
         onClick={onClose}
       />
-      <aside className={`fixed top-0 left-0 z-50 flex h-screen w-72 shrink-0 flex-col bg-[#082d72] p-6 text-white transition-transform duration-200 lg:sticky lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed top-0 left-0 z-50 flex h-screen w-72 shrink-0 flex-col overflow-hidden bg-[#082d72] p-6 text-white transition-transform duration-200 lg:sticky lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className='mb-8 flex items-start justify-between gap-4'>
           <div>
             <p className='text-2xl font-semibold tracking-wide'>ASODECO</p>
@@ -21,7 +21,7 @@ export function Sidebar({ currentView, onNavigate, open, onClose }) {
           </button>
         </div>
 
-        <nav className='space-y-2'>
+        <nav className='flex-1 space-y-2 overflow-y-auto'>
           {NAV_ITEMS.map((item) => (
             <button
               key={item.key}
@@ -36,6 +36,19 @@ export function Sidebar({ currentView, onNavigate, open, onClose }) {
             </button>
           ))}
         </nav>
+
+        {userEmail ? (
+          <div className='mt-4 border-t border-white/20 pt-4'>
+            <p className='truncate text-xs text-blue-200'>{userEmail}</p>
+            <button
+              type='button'
+              onClick={onLogout}
+              className='mt-3 w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-blue-100 transition hover:bg-white/10'
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        ) : null}
       </aside>
     </>
   )

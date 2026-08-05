@@ -17,7 +17,6 @@ export function ProductsView({ products, filteredProducts, search, onSearch, mat
       </header>
 
       <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
-        <input value={search} onChange={(event) => onSearch(event.target.value)} placeholder='Buscar producto' className='w-full max-w-md rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
         <select
           value={ventureFilter}
           onChange={(event) => onVentureFilter(event.target.value)}
@@ -28,6 +27,7 @@ export function ProductsView({ products, filteredProducts, search, onSearch, mat
             <option key={venture.id} value={venture.id}>{venture.name}</option>
           ))}
         </select>
+        <input value={search} onChange={(event) => onSearch(event.target.value)} placeholder='Buscar producto' className='w-full max-w-md rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
       </div>
 
       <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>

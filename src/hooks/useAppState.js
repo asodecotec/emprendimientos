@@ -163,7 +163,7 @@ export function useAppState() {
     const updates = {
       name: normalizedName,
       unit: materialData.unit ?? '',
-      ventureId: materialData.ventureId || undefined,
+      ventureId: materialData.ventureId || null,
     }
     
     try {
@@ -230,6 +230,7 @@ export function useAppState() {
       location: saleData.location || '',
       selectedProducts: saleData.selectedProducts || {},
       margin: saleData.margin || '',
+      paid: Boolean(saleData.paid),
     }
 
     try {
@@ -252,13 +253,14 @@ export function useAppState() {
       await updateCollectionDoc('sales', saleId, {
         ventureId: saleData.ventureId,
         date: saleData.date,
-        units: totalUnits || undefined,
+        units: totalUnits || null,
         amount: Number(saleData.amount || 0),
         shippingCost: Number(saleData.shippingCost || 0),
         phone: saleData.phone || '',
         location: saleData.location || '',
         selectedProducts: saleData.selectedProducts || {},
         margin: saleData.margin || '',
+        paid: Boolean(saleData.paid),
       })
     } catch (error) {
       console.error('Error actualizando venta:', error)
@@ -495,15 +497,22 @@ export function useAppState() {
   }, [materialsWithStock, search, ventureFilter, recent])
 
   const filteredPurchases = useMemo(() => {
-    if (!ventureFilter) return sortByRecentAndDate(purchases, recent)
+    const queryText = normalize(search)
+    const base = ventureFilter
+      ? purchases.filter((purchase) => {
+          const material = materials.find((item) => item.id === purchase.materialId)
+          return material?.ventureId === ventureFilter
+        })
+      : purchases
+    if (!queryText) return sortByRecentAndDate(base, recent)
     return sortByRecentAndDate(
-      purchases.filter((purchase) => {
+      base.filter((purchase) => {
         const material = materials.find((item) => item.id === purchase.materialId)
-        return material?.ventureId === ventureFilter
+        return normalize(`${material?.name || ''} ${purchase.date || ''}`).includes(queryText)
       }),
       recent,
     )
-  }, [purchases, materials, ventureFilter, recent])
+  }, [purchases, materials, search, ventureFilter, recent])
 
   const filteredProducts = useMemo(() => {
     const queryText = normalize(search)
@@ -518,9 +527,22 @@ export function useAppState() {
   }, [products, ventureFilter, search, recent])
 
   const filteredSales = useMemo(() => {
-    if (!ventureFilter) return sortByRecentAndDate(sales, recent)
-    return sortByRecentAndDate(sales.filter((sale) => sale.ventureId === ventureFilter), recent)
-  }, [sales, ventureFilter, recent])
+    const queryText = normalize(search)
+    const base = ventureFilter ? sales.filter((sale) => sale.ventureId === ventureFilter) : sales
+    if (!queryText) return sortByRecentAndDate(base, recent)
+    return sortByRecentAndDate(
+      base.filter((sale) => {
+        const productNames = Object.keys(sale.selectedProducts || {})
+          .map((productId) => {
+            const product = products.find((p) => p.id === productId)
+            return product?.name || ''
+          })
+          .join(' ')
+        return normalize(`${productNames} ${sale.phone || ''} ${sale.date || ''} ${sale.location || ''}`).includes(queryText)
+      }),
+      recent,
+    )
+  }, [sales, products, search, ventureFilter, recent])
 
   const fixedCosts = useMemo(
     () =>

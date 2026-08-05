@@ -1,7 +1,7 @@
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-export function SalesView({ sales, ventures, products, ventureFilter, recent, onVentureFilter, onOpenModal, onDelete, canEdit }) {
+export function SalesView({ sales, ventures, products, ventureFilter, recent, search, onSearch, onVentureFilter, onOpenModal, onDelete, onTogglePaid, canEdit }) {
   const splitIndex = sales.findIndex((sale) => !recent[sale.id])
   const recentItems = splitIndex === -1 ? sales : sales.slice(0, splitIndex)
   const dateItems = splitIndex === -1 ? [] : sales.slice(splitIndex)
@@ -20,16 +20,19 @@ export function SalesView({ sales, ventures, products, ventureFilter, recent, on
         ) : null}
       </header>
 
-      <select
-        value={ventureFilter}
-        onChange={(event) => onVentureFilter(event.target.value)}
-        className='rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none sm:max-w-xs'
-      >
-        <option value=''>Todos los emprendimientos</option>
-        {ventures.map((venture) => (
-          <option key={venture.id} value={venture.id}>{venture.name}</option>
-        ))}
-      </select>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+        <select
+          value={ventureFilter}
+          onChange={(event) => onVentureFilter(event.target.value)}
+          className='rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none sm:max-w-xs'
+        >
+          <option value=''>Todos los emprendimientos</option>
+          {ventures.map((venture) => (
+            <option key={venture.id} value={venture.id}>{venture.name}</option>
+          ))}
+        </select>
+        <input value={search} onChange={(event) => onSearch(event.target.value)} placeholder='Buscar venta' className='w-full max-w-md rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
+      </div>
 
       <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
         {sales.length ? (
@@ -39,15 +42,30 @@ export function SalesView({ sales, ventures, products, ventureFilter, recent, on
               const productCount = products.filter((product) => product.ventureId === sale.ventureId).length
               return (
                 <div key={sale.id} className='flex flex-col justify-between gap-3 rounded-2xl bg-slate-50 p-4 sm:flex-row sm:items-center'>
-                  <div>
-                    <h2 className='font-semibold text-slate-900'>{venture?.name || 'Emprendimiento'}</h2>
-                    <p className='mt-1 text-sm text-slate-500'>Fecha {sale.date} · {sale.units} unidades · {productCount} productos</p>
+                  <div className='flex items-center gap-3'>
+                    {canEdit ? (
+                      <input
+                        type='checkbox'
+                        checked={sale.paid || false}
+                        onChange={() => onTogglePaid(sale)}
+                        className='h-4 w-4 shrink-0 rounded border-slate-300 text-[#168467] focus:ring-[#168467]'
+                      />
+                    ) : (
+                      <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${sale.paid ? 'bg-green-500' : 'bg-amber-400'}`} />
+                    )}
+                    <div>
+                      <h2 className='font-semibold text-slate-900'>{venture?.name || 'Emprendimiento'}</h2>
+                      <p className='mt-1 text-sm text-slate-500'>Fecha {sale.date} · {sale.units} unidades · {productCount} productos</p>
+                    </div>
                   </div>
                   <div className='flex items-center gap-3'>
                     <div className='text-right'>
                       <p className='text-lg font-semibold text-[#168467]'>{formatMoney(sale.amount)}</p>
                       {Number(sale.shippingCost || 0) > 0 ? <p className='text-xs text-slate-500'>Envío {formatMoney(sale.shippingCost)}</p> : null}
                     </div>
+                    <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${sale.paid ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {sale.paid ? 'Pagada' : 'Pendiente'}
+                    </span>
                     {canEdit ? (
                       <>
                         <button type='button' onClick={() => onOpenModal('sale', sale)} className='rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100'>Editar</button>
@@ -64,15 +82,30 @@ export function SalesView({ sales, ventures, products, ventureFilter, recent, on
               const productCount = products.filter((product) => product.ventureId === sale.ventureId).length
               return (
                 <div key={sale.id} className='flex flex-col justify-between gap-3 rounded-2xl bg-slate-50 p-4 sm:flex-row sm:items-center'>
-                  <div>
-                    <h2 className='font-semibold text-slate-900'>{venture?.name || 'Emprendimiento'}</h2>
-                    <p className='mt-1 text-sm text-slate-500'>Fecha {sale.date} · {sale.units} unidades · {productCount} productos</p>
+                  <div className='flex items-center gap-3'>
+                    {canEdit ? (
+                      <input
+                        type='checkbox'
+                        checked={sale.paid || false}
+                        onChange={() => onTogglePaid(sale)}
+                        className='h-4 w-4 shrink-0 rounded border-slate-300 text-[#168467] focus:ring-[#168467]'
+                      />
+                    ) : (
+                      <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${sale.paid ? 'bg-green-500' : 'bg-amber-400'}`} />
+                    )}
+                    <div>
+                      <h2 className='font-semibold text-slate-900'>{venture?.name || 'Emprendimiento'}</h2>
+                      <p className='mt-1 text-sm text-slate-500'>Fecha {sale.date} · {sale.units} unidades · {productCount} productos</p>
+                    </div>
                   </div>
                   <div className='flex items-center gap-3'>
                     <div className='text-right'>
                       <p className='text-lg font-semibold text-[#168467]'>{formatMoney(sale.amount)}</p>
                       {Number(sale.shippingCost || 0) > 0 ? <p className='text-xs text-slate-500'>Envío {formatMoney(sale.shippingCost)}</p> : null}
                     </div>
+                    <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${sale.paid ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {sale.paid ? 'Pagada' : 'Pendiente'}
+                    </span>
                     {canEdit ? (
                       <>
                         <button type='button' onClick={() => onOpenModal('sale', sale)} className='rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100'>Editar</button>
