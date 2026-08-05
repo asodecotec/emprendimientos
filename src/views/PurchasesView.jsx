@@ -1,7 +1,7 @@
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-export function PurchasesView({ purchases, filteredPurchases, materials, ventures, ventureFilter, recent, onVentureFilter, onOpenModal, onDelete }) {
+export function PurchasesView({ purchases, filteredPurchases, materials, ventures, ventureFilter, recent, onVentureFilter, onOpenModal, onDelete, canEdit }) {
   const splitIndex = filteredPurchases.findIndex((purchase) => !recent[purchase.id])
   const recentItems = splitIndex === -1 ? filteredPurchases : filteredPurchases.slice(0, splitIndex)
   const dateItems = splitIndex === -1 ? [] : filteredPurchases.slice(splitIndex)
@@ -13,8 +13,11 @@ export function PurchasesView({ purchases, filteredPurchases, materials, venture
           <p className='mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#1769aa]'>Compras</p>
           <h1 className='text-3xl font-semibold text-[#082d72]'>Registra tus compras</h1>
           <p className='mt-2 text-sm text-slate-600'>Cada compra suma stock al material correspondiente del inventario.</p>
+          {!canEdit ? <p className='mt-2 text-sm font-semibold text-blue-700'>Modo invitado: solo lectura</p> : null}
         </div>
-        <button type='button' onClick={() => onOpenModal()} className='rounded-full bg-[#168467] px-4 py-2 text-sm font-semibold text-white'>+ Nueva compra</button>
+        {canEdit ? (
+          <button type='button' onClick={() => onOpenModal()} className='rounded-full bg-[#168467] px-4 py-2 text-sm font-semibold text-white'>+ Nueva compra</button>
+        ) : null}
       </header>
 
       <select
@@ -43,7 +46,9 @@ export function PurchasesView({ purchases, filteredPurchases, materials, venture
                   </div>
                   <div className='flex items-center gap-3'>
                     <p className='text-lg font-semibold text-[#168467]'>{formatMoney(purchase.cost)}</p>
-                    <button type='button' onClick={() => onDelete('purchase', purchase)} className='rounded-full border border-red-200 px-3 py-2 text-sm font-semibold text-red-700'>Eliminar</button>
+                    {canEdit ? (
+                      <button type='button' onClick={() => onDelete('purchase', purchase)} className='rounded-full border border-red-200 px-3 py-2 text-sm font-semibold text-red-700'>Eliminar</button>
+                    ) : null}
                   </div>
                 </div>
               )
@@ -61,7 +66,9 @@ export function PurchasesView({ purchases, filteredPurchases, materials, venture
                   </div>
                   <div className='flex items-center gap-3'>
                     <p className='text-lg font-semibold text-[#168467]'>{formatMoney(purchase.cost)}</p>
-                    <button type='button' onClick={() => onDelete('purchase', purchase)} className='rounded-full border border-red-200 px-3 py-2 text-sm font-semibold text-red-700'>Eliminar</button>
+                    {canEdit ? (
+                      <button type='button' onClick={() => onDelete('purchase', purchase)} className='rounded-full border border-red-200 px-3 py-2 text-sm font-semibold text-red-700'>Eliminar</button>
+                    ) : null}
                   </div>
                 </div>
               )
