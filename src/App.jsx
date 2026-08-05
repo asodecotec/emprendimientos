@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
+import { AuthPage } from './components/AuthPage'
+import { useAuth } from './hooks/useAuth'
 import { useAppState } from './hooks/useAppState'
 import { MATERIAL_UNITS, FIXED_COST_FREQUENCIES } from './models/appModel'
 import { DashboardView } from './views/DashboardView'
@@ -55,13 +57,33 @@ function App() {
     removeFixedCost,
   } = useAppState()
 
+  const {
+    user,
+    isGuest,
+    loadingAuth,
+    authError,
+    signIn,
+    register,
+    signInWithGoogle,
+    resetPassword,
+    logout,
+    continueAsGuest,
+  } = useAuth()
+
+  const canEdit = Boolean(user)
+  const canRead = Boolean(user) || isGuest
+  const canOpenModal = canEdit
+  const canDelete = canEdit
+  const canCreate = canEdit
+
   const [ventureForm, setVentureForm] = useState({ name: '', description: '' })
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const handleOpenVentureModal = useCallback((venture = null) => {
+    if (!canOpenModal) return
     openModal('venture', venture)
     setVentureForm({ name: venture?.name || '', description: venture?.description || '' })
-  }, [openModal])
+  }, [openModal, canOpenModal])
 
   const handleCloseVentureModal = () => {
     closeModal()
@@ -100,17 +122,19 @@ function App() {
   }, [])
 
   const handleOpenMaterialModal = useCallback((material = null) => {
+    if (!canOpenModal) return
     openModal('material', material)
     setMaterialForm({
       name: material?.name || '',
       ventureId: material?.ventureId || ventureFilter || ventures[0]?.id || '',
       unit: material?.unit || '',
     })
-  }, [openModal, ventureFilter, ventures])
+  }, [openModal, ventureFilter, ventures, canOpenModal])
 
   const [fixedCostForm, setFixedCostForm] = useState({ ventureId: '', name: '', cost: '', startDate: '', frequency: 'monthly', endDate: '' })
 
   const handleOpenFixedCostModal = useCallback((venture = null, fixedCost = null) => {
+    if (!canOpenModal) return
     openModal('fixedCost', fixedCost)
     setFixedCostForm({
       ventureId: fixedCost?.ventureId || venture?.id || ventureFilter || ventures[0]?.id || '',
@@ -120,7 +144,7 @@ function App() {
       frequency: fixedCost?.frequency || 'monthly',
       endDate: fixedCost?.endDate || '',
     })
-  }, [openModal, ventureFilter, ventures])
+  }, [openModal, ventureFilter, ventures, canOpenModal])
 
   const handleSaveFixedCost = () => {
     const name = fixedCostForm.name.trim()
@@ -147,6 +171,7 @@ function App() {
   }
 
   const handleOpenPurchaseModal = useCallback(() => {
+    if (!canOpenModal) return
     const ventureMaterials = ventureFilter ? materials.filter((material) => material.ventureId === ventureFilter) : materials
     setPurchaseForm({
       materialId: ventureMaterials[0]?.id || '',
@@ -156,10 +181,11 @@ function App() {
       cost: '',
     })
     openModal('purchase')
-  }, [materials, ventureFilter, openModal])
+  }, [materials, ventureFilter, openModal, canOpenModal])
 
 
   const handleOpenSaleModal = useCallback((sale = null) => {
+    if (!canOpenModal) return
     const prefilledSoldProducts = Object.entries(sale?.selectedProducts || {}).map(([productId, item]) => ({
       productId,
       quantity: Number(item?.quantity || 1),
@@ -175,7 +201,7 @@ function App() {
       margin: sale?.margin || '',
       soldProducts: prefilledSoldProducts.length ? prefilledSoldProducts : [{ productId: '', quantity: 1 }],
     })
-  }, [openModal, ventureFilter])
+  }, [openModal, ventureFilter, canOpenModal])
 
 
   const [productForm, setProductForm] = useState({
@@ -286,14 +312,14 @@ function App() {
 
 
   const currentView = useMemo(() => {
-    if (view === 'ventures') return <VenturesView ventures={ventures} products={products} filteredVentures={filteredVentures} search={search} onSearch={setSearch} onOpenModal={(type, item) => { if (type === 'venture') handleOpenVentureModal(item) }} onNavigateToSection={handleNavigateToVentureSection} onDelete={(type, item) => { if (type === 'venture') removeVenture(item.id) }} onAddFixedCost={(venture) => handleOpenFixedCostModal(venture)} onEditFixedCost={(venture, item) => handleOpenFixedCostModal(venture, item)} onDeleteFixedCost={(venture, item) => removeFixedCost({ ventureId: venture.id, fixedCostId: item.id })} />
-    if (view === 'products') return <ProductsView products={products} filteredProducts={filteredProducts} search={search} onSearch={setSearch} materials={materials} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} onOpenModal={(type, item) => { if (type === 'product') handleOpenProductModal(item) }} onDelete={(type, item) => { if (type === 'product') removeProduct(item.id) }} />
-    if (view === 'inventory') return <InventoryView materials={materialsWithStock} filteredMaterials={filteredMaterialsWithStock} search={search} onSearch={setSearch} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} onOpenModal={(type, item) => { if (type === 'material') handleOpenMaterialModal(item) }} onDelete={(type, item) => { if (type === 'material') removeMaterial(item.id) }} />
-    if (view === 'purchases') return <PurchasesView purchases={purchases} filteredPurchases={filteredPurchases} materials={materials} ventures={ventures} ventureFilter={ventureFilter} recent={recent} onVentureFilter={setVentureFilter} onOpenModal={handleOpenPurchaseModal} onDelete={(type, item) => { if (type === 'purchase') removePurchase(item.id) }} />
+    if (view === 'ventures') return <VenturesView ventures={ventures} products={products} filteredVentures={filteredVentures} search={search} onSearch={setSearch} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'venture') handleOpenVentureModal(item) }} onNavigateToSection={handleNavigateToVentureSection} onDelete={(type, item) => { if (type === 'venture' && canDelete) removeVenture(item.id) }} onAddFixedCost={(venture) => handleOpenFixedCostModal(venture)} onEditFixedCost={(venture, item) => handleOpenFixedCostModal(venture, item)} onDeleteFixedCost={(venture, item) => { if (canDelete) removeFixedCost({ ventureId: venture.id, fixedCostId: item.id }) }} />
+    if (view === 'products') return <ProductsView products={products} filteredProducts={filteredProducts} search={search} onSearch={setSearch} materials={materials} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'product') handleOpenProductModal(item) }} onDelete={(type, item) => { if (type === 'product' && canDelete) removeProduct(item.id) }} />
+    if (view === 'inventory') return <InventoryView materials={materialsWithStock} filteredMaterials={filteredMaterialsWithStock} search={search} onSearch={setSearch} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'material') handleOpenMaterialModal(item) }} onDelete={(type, item) => { if (type === 'material' && canDelete) removeMaterial(item.id) }} />
+    if (view === 'purchases') return <PurchasesView purchases={purchases} filteredPurchases={filteredPurchases} materials={materials} ventures={ventures} ventureFilter={ventureFilter} recent={recent} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={handleOpenPurchaseModal} onDelete={(type, item) => { if (type === 'purchase' && canDelete) removePurchase(item.id) }} />
     if (view === 'finance') return <FinanceView fixedCosts={filteredFixedCosts} stats={financeStats} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} />
-    if (view === 'sales') return <SalesView sales={filteredSales} ventures={ventures} products={products} ventureFilter={ventureFilter} recent={recent} onVentureFilter={setVentureFilter} onOpenModal={(type, item) => { if (type === 'sale') handleOpenSaleModal(item) }} onDelete={(type, item) => { if (type === 'sale') removeSale(item.id) }} />
+    if (view === 'sales') return <SalesView sales={filteredSales} ventures={ventures} products={products} ventureFilter={ventureFilter} recent={recent} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'sale') handleOpenSaleModal(item) }} onDelete={(type, item) => { if (type === 'sale' && canDelete) removeSale(item.id) }} />
     return <DashboardView stats={stats} onNavigate={setView} />
-  }, [financeStats, filteredFixedCosts, filteredMaterialsWithStock, filteredProducts, filteredPurchases, filteredSales, filteredVentures, handleNavigateToVentureSection, handleOpenFixedCostModal, handleOpenMaterialModal, handleOpenProductModal, handleOpenPurchaseModal, handleOpenSaleModal, handleOpenVentureModal, materials, materialsWithStock, products, purchases, recent, removeFixedCost, removeMaterial, removeProduct, removePurchase, removeSale, removeVenture, search, setSearch, setView, setVentureFilter, stats, ventures, ventureFilter, view])
+  }, [financeStats, filteredFixedCosts, filteredMaterialsWithStock, filteredProducts, filteredPurchases, filteredSales, filteredVentures, handleNavigateToVentureSection, handleOpenFixedCostModal, handleOpenMaterialModal, handleOpenProductModal, handleOpenPurchaseModal, handleOpenSaleModal, handleOpenVentureModal, materials, materialsWithStock, products, purchases, recent, removeFixedCost, removeMaterial, removeProduct, removePurchase, removeSale, removeVenture, search, setSearch, setView, setVentureFilter, stats, ventures, ventureFilter, view, canEdit, canDelete])
 
   const renderModalContent = () => {
     if (!modal) return null
@@ -843,6 +869,33 @@ function App() {
     return null
   }
 
+  if (loadingAuth) {
+    return (
+      <div className='min-h-screen bg-[#f6f3eb] text-slate-800'>
+        <div className='flex min-h-screen items-center justify-center'>
+          <div className='rounded-3xl border border-slate-200 bg-white p-8 shadow-sm text-center'>
+            <p className='text-lg font-semibold text-[#082d72]'>Cargando sesión...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!canRead) {
+    return (
+      <AuthPage
+        isGuest={isGuest}
+        authError={authError}
+        loadingAuth={loadingAuth}
+        onSignIn={signIn}
+        onRegister={register}
+        onGoogleSignIn={signInWithGoogle}
+        onResetPassword={resetPassword}
+        onContinueAsGuest={continueAsGuest}
+      />
+    )
+  }
+
   return (
     <div className='min-h-screen bg-[#f6f3eb] text-slate-800'>
       <div className='flex min-h-screen flex-col lg:flex-row'>
@@ -860,9 +913,25 @@ function App() {
             </button>
           </div>
           <header className='mb-6 rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm'>
-            <p className='text-xs uppercase tracking-[0.3em] text-slate-500'>Panel operativo</p>
-            <h1 className='mt-2 text-2xl font-semibold text-slate-900'>Asodeco</h1>
-            <p className='mt-2 text-sm text-slate-600'>Versión modular y organizada para gestión de emprendimientos.</p>
+            <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
+              <div>
+                <p className='text-xs uppercase tracking-[0.3em] text-slate-500'>Panel operativo</p>
+                <h1 className='mt-2 text-2xl font-semibold text-slate-900'>Asodeco</h1>
+                <p className='mt-2 text-sm text-slate-600'>Versión modular y organizada para gestión de emprendimientos.</p>
+              </div>
+              <div className='flex flex-col items-end gap-2 sm:flex-row sm:items-center'>
+                {user ? (
+                  <div className='rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700'>
+                    {user.email}
+                  </div>
+                ) : (
+                  <div className='rounded-full border border-slate-200 bg-blue-50 px-4 py-2 text-sm text-blue-700'>
+                    Invitado
+                  </div>
+                )}
+                <button type='button' onClick={logout} className='rounded-full bg-[#082d72] px-4 py-2 text-sm font-semibold text-white hover:bg-[#061f53]'>Cerrar sesión</button>
+              </div>
+            </div>
           </header>
 
           {currentView}

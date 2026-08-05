@@ -1,7 +1,7 @@
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-export function InventoryView({ materials, filteredMaterials, search, onSearch, ventures, ventureFilter, onVentureFilter, onOpenModal, onDelete }) {
+export function InventoryView({ materials, filteredMaterials, search, onSearch, ventures, ventureFilter, onVentureFilter, onOpenModal, onDelete, canEdit }) {
   return (
     <section className='space-y-6'>
       <header className='flex flex-col justify-between gap-4 sm:flex-row sm:items-end'>
@@ -9,8 +9,11 @@ export function InventoryView({ materials, filteredMaterials, search, onSearch, 
           <p className='mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#1769aa]'>Inventario</p>
           <h1 className='text-3xl font-semibold text-[#082d72]'>Controla tus materiales</h1>
           <p className='mt-2 text-sm text-slate-600'>Registra insumos, costos y stock para cada producto.</p>
+          {!canEdit ? <p className='mt-2 text-sm font-semibold text-blue-700'>Modo invitado: solo lectura</p> : null}
         </div>
-        <button type='button' onClick={() => onOpenModal('material')} className='rounded-full bg-[#168467] px-4 py-2 text-sm font-semibold text-white'>+ Nuevo material</button>
+        {canEdit ? (
+          <button type='button' onClick={() => onOpenModal('material')} className='rounded-full bg-[#168467] px-4 py-2 text-sm font-semibold text-white'>+ Nuevo material</button>
+        ) : null}
       </header>
 
       <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
@@ -39,8 +42,12 @@ export function InventoryView({ materials, filteredMaterials, search, onSearch, 
                   <p className='mt-1 text-sm font-semibold text-[#1769aa]'>{venture?.name || 'Sin emprendimiento'}</p>
                 </div>
                 <div className='flex gap-2'>
-                  <button type='button' onClick={() => onOpenModal('material', material)} className='rounded-full border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700'>Editar</button>
-                  <button type='button' onClick={() => onDelete('material', material)} className='rounded-full border border-red-200 px-3 py-2 text-sm font-semibold text-red-700'>Eliminar</button>
+                  {canEdit ? (
+                    <>
+                      <button type='button' onClick={() => onOpenModal('material', material)} className='rounded-full border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700'>Editar</button>
+                      <button type='button' onClick={() => onDelete('material', material)} className='rounded-full border border-red-200 px-3 py-2 text-sm font-semibold text-red-700'>Eliminar</button>
+                    </>
+                  ) : null}
                 </div>
               </div>
               <div className='mt-4 grid gap-3 sm:grid-cols-2'>
