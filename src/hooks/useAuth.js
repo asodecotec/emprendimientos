@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   signInWithPopup,
-  sendPasswordResetEmail,
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth'
-import { auth, googleProvider } from '../../firebase'
+import { collection, getCountFromServer } from 'firebase/firestore'
+import { auth, googleProvider, db } from '../../firebase'
 
 const GUEST_STORAGE_KEY = 'asodeco-invitado'
 
@@ -40,6 +38,7 @@ export function useAuth() {
   const [isGuest, setIsGuest] = useState(() => safeLocalStorageGetItem(GUEST_STORAGE_KEY) === 'true')
   const [loadingAuth, setLoadingAuth] = useState(true)
   const [authError, setAuthError] = useState(null)
+  const [whitelistPending, setWhitelistPending] = useState(false)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
@@ -62,43 +61,25 @@ export function useAuth() {
     return message
   }
 
-  const signIn = useCallback(async (email, password) => {
-    setAuthError(null)
-    try {
-      return await signInWithEmailAndPassword(auth, email, password)
-    } catch (error) {
-      handleError(error)
-      throw error
-    }
-  }, [])
-
-  const register = useCallback(async (email, password) => {
-    setAuthError(null)
-    try {
-      return await createUserWithEmailAndPassword(auth, email, password)
-    } catch (error) {
-      handleError(error)
-      throw error
-    }
-  }, [])
-
   const signInWithGoogle = useCallback(async () => {
     setAuthError(null)
+    setWhitelistPending(true)
     try {
-      return await signInWithPopup(auth, googleProvider)
+      const result = await signInWithPopup(auth, googleProvider)
+      try {
+        await getCountFromServer(collection(db, 'account-whitelist'))
+      } catch {
+        await signOut(auth)
+        setAuthError('Esta cuenta no tiene permiso para acceder al sistema')
+        throw new Error('Not whitelisted')
+      }
+      return result
     } catch (error) {
+      if (error?.message === 'Not whitelisted') throw error
       handleError(error)
       throw error
-    }
-  }, [])
-
-  const resetPassword = useCallback(async (email) => {
-    setAuthError(null)
-    try {
-      return await sendPasswordResetEmail(auth, email)
-    } catch (error) {
-      handleError(error)
-      throw error
+    } finally {
+      setWhitelistPending(false)
     }
   }, [])
 
@@ -126,10 +107,8 @@ export function useAuth() {
     isGuest,
     loadingAuth,
     authError,
-    signIn,
-    register,
+    whitelistPending,
     signInWithGoogle,
-    resetPassword,
     logout,
     continueAsGuest,
   }

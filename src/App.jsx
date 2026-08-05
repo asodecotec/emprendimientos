@@ -62,16 +62,14 @@ function App() {
     isGuest,
     loadingAuth,
     authError,
-    signIn,
-    register,
+    whitelistPending,
     signInWithGoogle,
-    resetPassword,
     logout,
     continueAsGuest,
   } = useAuth()
 
-  const canEdit = Boolean(user)
-  const canRead = Boolean(user) || isGuest
+  const canEdit = Boolean(user) && !whitelistPending
+  const canRead = (Boolean(user) && !whitelistPending) || isGuest
   const canOpenModal = canEdit
   const canDelete = canEdit
   const canCreate = canEdit
@@ -920,10 +918,7 @@ function App() {
         isGuest={isGuest}
         authError={authError}
         loadingAuth={loadingAuth}
-        onSignIn={signIn}
-        onRegister={register}
         onGoogleSignIn={signInWithGoogle}
-        onResetPassword={resetPassword}
         onContinueAsGuest={continueAsGuest}
       />
     )
