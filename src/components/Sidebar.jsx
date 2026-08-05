@@ -10,7 +10,7 @@ export function Sidebar({ currentView, onNavigate, open, onClose }) {
       <aside className={`fixed top-0 left-0 z-50 flex h-screen w-72 shrink-0 flex-col bg-[#082d72] p-6 text-white transition-transform duration-200 lg:sticky lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className='mb-8 flex items-start justify-between gap-4'>
           <div>
-            <p className='text-2xl font-semibold tracking-wide'>Asodeco</p>
+            <p className='text-2xl font-semibold tracking-wide'>ASODECO</p>
             <p className='mt-2 text-sm text-blue-100'>Gestión de emprendimientos</p>
           </div>
           <button type='button' onClick={onClose} aria-label='Cerrar menú' className='rounded-lg p-1 text-blue-100 hover:bg-white/10 lg:hidden'>

@@ -850,7 +850,7 @@ function App() {
 
         <main className='flex-1 p-4 sm:p-6 lg:p-8'>
           <div className='mb-4 flex items-center justify-between lg:hidden'>
-            <p className='text-xl font-semibold text-[#082d72]'>Asodeco</p>
+            <p className='text-xl font-semibold text-[#082d72]'>ASODECO</p>
             <button type='button' onClick={() => setSidebarOpen(true)} aria-label='Abrir menú' className='rounded-full bg-[#082d72] p-2 text-white'>
               <svg className='h-6 w-6' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'>
                 <line x1='4' y1='6' x2='20' y2='6' />
@@ -861,7 +861,7 @@ function App() {
           </div>
           <header className='mb-6 rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm'>
             <p className='text-xs uppercase tracking-[0.3em] text-slate-500'>Panel operativo</p>
-            <h1 className='mt-2 text-2xl font-semibold text-slate-900'>Asodeco</h1>
+            <h1 className='mt-2 text-2xl font-semibold text-slate-900'>ASODECO</h1>
             <p className='mt-2 text-sm text-slate-600'>Versión modular y organizada para gestión de emprendimientos.</p>
           </header>
 
