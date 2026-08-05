@@ -74,7 +74,7 @@ function App() {
   const canDelete = canEdit
   const canCreate = canEdit
 
-  const [ventureForm, setVentureForm] = useState({ name: '', description: '', employeeCount: '', profitShare: '' })
+  const [ventureForm, setVentureForm] = useState({ name: '', description: '', employeeTimeline: [] })
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const handleOpenVentureModal = useCallback((venture = null) => {
@@ -83,18 +83,17 @@ function App() {
     setVentureForm({
       name: venture?.name || '',
       description: venture?.description || '',
-      employeeCount: venture?.employeeCount != null ? String(venture.employeeCount) : '',
-      profitShare: venture?.profitShare != null ? String(venture.profitShare) : '',
+      employeeTimeline: venture?.employeeTimeline || [],
     })
   }, [openModal, canOpenModal])
 
   const handleCloseVentureModal = () => {
     closeModal()
-    setVentureForm({ name: '', description: '', employeeCount: '', profitShare: '' })
+    setVentureForm({ name: '', description: '', employeeTimeline: [] })
   }
 
   const handleSaveVenture = () => {
-    saveVenture(ventureForm.name, ventureForm.description, ventureForm.employeeCount, ventureForm.profitShare)
+    saveVenture(ventureForm.name, ventureForm.description, ventureForm.employeeTimeline)
     handleCloseVentureModal()
   }
 
@@ -335,33 +334,87 @@ function App() {
           <div className='space-y-4'>
             <input value={ventureForm.name} onChange={(event) => setVentureForm((current) => ({ ...current, name: event.target.value }))} placeholder='Nombre del emprendimiento' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
             <textarea value={ventureForm.description} onChange={(event) => setVentureForm((current) => ({ ...current, description: event.target.value }))} placeholder='Descripción del emprendimiento' rows='3' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
-            <div className='grid gap-4 sm:grid-cols-2'>
-              <label className='block'>
-                <span className='mb-2 block text-sm font-semibold text-slate-700'>Número de empleados</span>
-                <input
-                  type='number'
-                  min='0'
-                  step='1'
-                  value={ventureForm.employeeCount}
-                  onChange={(event) => setVentureForm((current) => ({ ...current, employeeCount: event.target.value }))}
-                  placeholder='0'
-                  className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none'
-                />
-              </label>
-              <label className='block'>
-                <span className='mb-2 block text-sm font-semibold text-slate-700'>Participación (%)</span>
-                <input
-                  type='number'
-                  min='0'
-                  max='100'
-                  step='0.1'
-                  value={ventureForm.profitShare}
-                  onChange={(event) => setVentureForm((current) => ({ ...current, profitShare: event.target.value }))}
-                  placeholder='0'
-                  className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none'
-                />
-                <p className='mt-1 text-xs text-slate-500'>Porcentaje de la ganancia para empleados.</p>
-              </label>
+            <div>
+              <div className='mb-2 flex items-center justify-between'>
+                <span className='text-sm font-semibold text-slate-700'>Línea de tiempo de empleados</span>
+                <button
+                  type='button'
+                  onClick={() => setVentureForm((current) => ({
+                    ...current,
+                    employeeTimeline: [...current.employeeTimeline, { startDate: new Date().toISOString().slice(0, 10), employeeCount: '', profitShare: '' }],
+                  }))}
+                  className='rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50'
+                >
+                  + Agregar entrada
+                </button>
+              </div>
+              {ventureForm.employeeTimeline.length === 0 ? (
+                <p className='text-sm text-slate-400'>Sin entradas. Los empleados no tendrán participación.</p>
+              ) : (
+                <div className='space-y-3'>
+                  {ventureForm.employeeTimeline.map((entry, index) => (
+                    <div key={index} className='rounded-2xl border border-slate-200 bg-slate-50 p-3 space-y-2'>
+                      <div className='flex items-center justify-between'>
+                        <input
+                          type='date'
+                          value={entry.startDate}
+                          onChange={(event) => setVentureForm((current) => {
+                            const updated = [...current.employeeTimeline]
+                            updated[index] = { ...updated[index], startDate: event.target.value }
+                            return { ...current, employeeTimeline: updated }
+                          })}
+                          className='rounded-xl border border-slate-300 px-3 py-1.5 text-sm outline-none'
+                        />
+                        <button
+                          type='button'
+                          onClick={() => setVentureForm((current) => ({
+                            ...current,
+                            employeeTimeline: current.employeeTimeline.filter((_, i) => i !== index),
+                          }))}
+                          className='rounded-full border border-red-200 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50'
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                      <div className='grid grid-cols-2 gap-2'>
+                        <label className='block'>
+                          <span className='mb-1 block text-xs text-slate-500'>Empleados</span>
+                          <input
+                            type='number'
+                            min='0'
+                            step='1'
+                            value={entry.employeeCount}
+                            onChange={(event) => setVentureForm((current) => {
+                              const updated = [...current.employeeTimeline]
+                              updated[index] = { ...updated[index], employeeCount: event.target.value }
+                              return { ...current, employeeTimeline: updated }
+                            })}
+                            placeholder='0'
+                            className='w-full rounded-xl border border-slate-300 px-3 py-1.5 text-sm outline-none'
+                          />
+                        </label>
+                        <label className='block'>
+                          <span className='mb-1 block text-xs text-slate-500'>Participación (%)</span>
+                          <input
+                            type='number'
+                            min='0'
+                            max='100'
+                            step='0.1'
+                            value={entry.profitShare}
+                            onChange={(event) => setVentureForm((current) => {
+                              const updated = [...current.employeeTimeline]
+                              updated[index] = { ...updated[index], profitShare: event.target.value }
+                              return { ...current, employeeTimeline: updated }
+                            })}
+                            placeholder='0'
+                            className='w-full rounded-xl border border-slate-300 px-3 py-1.5 text-sm outline-none'
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div className='flex justify-end gap-3'>
               <button type='button' onClick={handleCloseVentureModal} className='rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700'>Cancelar</button>

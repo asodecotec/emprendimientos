@@ -196,3 +196,15 @@ export function calculateFixedCostTotal(fixedCost) {
 
   return intervals * cost
 }
+
+export function getActiveEmployeeEntry(timeline, date) {
+  if (!timeline || !timeline.length) return { employeeCount: 0, profitShare: 0 }
+  const sorted = [...timeline].sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''))
+  const target = date || new Date().toISOString().slice(0, 10)
+  let active = sorted[0]
+  for (const entry of sorted) {
+    if ((entry.startDate || '') <= target) active = entry
+    else break
+  }
+  return { employeeCount: Number(active.employeeCount || 0), profitShare: Number(active.profitShare || 0) }
+}

@@ -47,13 +47,26 @@ export function VenturesView({ ventures, products, filteredVentures, search, onS
                   <h2 className='text-lg font-semibold text-slate-900'>{venture.name}</h2>
                   <p className='mt-1 text-sm text-slate-500'>{venture.description}</p>
                   <p className='mt-3 text-sm font-semibold text-[#1769aa]'>{ventureProducts.length} producto(s)</p>
-                  {(venture.employeeCount > 0 || venture.profitShare > 0) ? (
-                    <p className='mt-1 text-sm text-slate-500'>
-                      {venture.employeeCount > 0 ? `${venture.employeeCount} empleado(s)` : ''}
-                      {venture.employeeCount > 0 && venture.profitShare > 0 ? ' · ' : ''}
-                      {venture.profitShare > 0 ? `${venture.profitShare}% participación` : ''}
-                    </p>
-                  ) : null}
+                  {(() => {
+                    const timeline = venture.employeeTimeline || []
+                    if (!timeline.length) return null
+                    const sorted = [...timeline].sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))
+                    const current = sorted[0]
+                    return (
+                      <div className='mt-1 space-y-1'>
+                        {current.employeeCount > 0 || current.profitShare > 0 ? (
+                          <p className='text-sm text-slate-500'>
+                            {current.employeeCount > 0 ? `${current.employeeCount} empleado(s)` : ''}
+                            {current.employeeCount > 0 && current.profitShare > 0 ? ' · ' : ''}
+                            {current.profitShare > 0 ? `${current.profitShare}% participación` : ''}
+                          </p>
+                        ) : null}
+                        {sorted.length > 1 ? (
+                          <p className='text-xs text-slate-400'>{sorted.length} cambio(s) en el tiempo</p>
+                        ) : null}
+                      </div>
+                    )
+                  })()}
                 </div>
                 <div className='flex flex-wrap gap-2'>
                   {canEdit ? (

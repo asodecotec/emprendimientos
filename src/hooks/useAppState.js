@@ -11,7 +11,7 @@ import {
   where,
 } from 'firebase/firestore'
 import { db } from '../../firebase'
-import { createId, normalize, getProductCost, calculateFixedCostTotal } from '../models/appModel'
+import { createId, normalize, getProductCost, calculateFixedCostTotal, getActiveEmployeeEntry } from '../models/appModel'
 
 const COLLECTIONS = ['ventures', 'materials', 'purchases', 'products', 'sales']
 
@@ -100,28 +100,29 @@ export function useAppState() {
     setDraft('')
   }
 
-  const saveVenture = async (name, description, employeeCount, profitShare) => {
+  const saveVenture = async (name, description, employeeTimeline) => {
     const normalizedName = name.trim()
     if (!normalizedName) return
 
     const normalizedDescription = description.trim() || 'Nuevo emprendimiento'
-    const normalizedEmployeeCount = Math.max(Number(employeeCount || 0), 0)
-    const normalizedProfitShare = Math.max(Math.min(Number(profitShare || 0), 100), 0)
+    const normalizedTimeline = (employeeTimeline || []).map((entry) => ({
+      startDate: entry.startDate || new Date().toISOString().slice(0, 10),
+      employeeCount: Math.max(Number(entry.employeeCount || 0), 0),
+      profitShare: Math.max(Math.min(Number(entry.profitShare || 0), 100), 0),
+    }))
 
     try {
       if (activeItem) {
         await updateCollectionDoc('ventures', activeItem.id, {
           name: normalizedName,
           description: normalizedDescription,
-          employeeCount: normalizedEmployeeCount,
-          profitShare: normalizedProfitShare,
+          employeeTimeline: normalizedTimeline,
         })
       } else {
         const newVenture = {
           name: normalizedName,
           description: normalizedDescription,
-          employeeCount: normalizedEmployeeCount,
-          profitShare: normalizedProfitShare,
+          employeeTimeline: normalizedTimeline,
         }
         const newVentureId = createId('venture')
         await createCollectionDoc('ventures', newVentureId, newVenture)
@@ -582,28 +583,31 @@ export function useAppState() {
     let totalEmployees = 0
 
     venturesToProcess.forEach((venture) => {
+      const timeline = venture.employeeTimeline || []
+      const latestEntry = [...timeline].sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))[0]
+      totalEmployees += Number(latestEntry?.employeeCount || 0)
+
       const ventureSales = sales.filter((sale) => sale.ventureId === venture.id)
-      const ventureRevenue = ventureSales.reduce((sum, item) => sum + Number(item.amount || 0), 0)
-      const ventureShipping = ventureSales.reduce((sum, item) => sum + Number(item.shippingCost || 0), 0)
-      const ventureProductCosts = ventureSales.reduce((sum, sale) => {
-        const productsInSale = Object.entries(sale.selectedProducts || {})
-        return sum + productsInSale.reduce((productSum, [productId, item]) => {
+      ventureSales.forEach((sale) => {
+        const entry = getActiveEmployeeEntry(timeline, sale.date)
+        if (entry.profitShare <= 0) return
+
+        const saleRevenue = Number(sale.amount || 0)
+        const saleShipping = Number(sale.shippingCost || 0)
+        const saleProductCosts = Object.entries(sale.selectedProducts || {}).reduce((sum, [productId, item]) => {
           const product = products.find((p) => p.id === productId)
-          if (!product) return productSum
+          if (!product) return sum
           const cost = getProductCost(product, materials, fixedCosts)
-          return productSum + cost * Number(item.quantity || 1)
+          return sum + cost * Number(item.quantity || 1)
         }, 0)
-      }, 0)
-      const ventureFixedCosts = fixedCosts
-        .filter((fc) => fc.ventureId === venture.id)
-        .reduce((sum, item) => sum + calculateFixedCostTotal(item), 0)
-      const ventureProfit = ventureRevenue - ventureProductCosts - ventureShipping - ventureFixedCosts
-      const employeeCount = Number(venture.employeeCount || 0)
-      const profitShare = Number(venture.profitShare || 0)
-      totalEmployees += employeeCount
-      if (ventureProfit > 0 && profitShare > 0) {
-        totalEmployeePay += ventureProfit * (profitShare / 100)
-      }
+        const saleFixedCosts = fixedCosts
+          .filter((fc) => fc.ventureId === venture.id)
+          .reduce((sum, item) => sum + calculateFixedCostTotal(item) / Math.max(ventureSales.length, 1), 0)
+        const saleProfit = saleRevenue - saleProductCosts - saleShipping - saleFixedCosts
+        if (saleProfit > 0) {
+          totalEmployeePay += saleProfit * (entry.profitShare / 100)
+        }
+      })
     })
 
     const payPerEmployee = totalEmployees > 0 ? totalEmployeePay / totalEmployees : 0
