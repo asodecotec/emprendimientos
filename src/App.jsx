@@ -76,22 +76,27 @@ function App() {
   const canDelete = canEdit
   const canCreate = canEdit
 
-  const [ventureForm, setVentureForm] = useState({ name: '', description: '' })
+  const [ventureForm, setVentureForm] = useState({ name: '', description: '', employeeCount: '', profitShare: '' })
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const handleOpenVentureModal = useCallback((venture = null) => {
     if (!canOpenModal) return
     openModal('venture', venture)
-    setVentureForm({ name: venture?.name || '', description: venture?.description || '' })
+    setVentureForm({
+      name: venture?.name || '',
+      description: venture?.description || '',
+      employeeCount: venture?.employeeCount != null ? String(venture.employeeCount) : '',
+      profitShare: venture?.profitShare != null ? String(venture.profitShare) : '',
+    })
   }, [openModal, canOpenModal])
 
   const handleCloseVentureModal = () => {
     closeModal()
-    setVentureForm({ name: '', description: '' })
+    setVentureForm({ name: '', description: '', employeeCount: '', profitShare: '' })
   }
 
   const handleSaveVenture = () => {
-    saveVenture(ventureForm.name, ventureForm.description)
+    saveVenture(ventureForm.name, ventureForm.description, ventureForm.employeeCount, ventureForm.profitShare)
     handleCloseVentureModal()
   }
 
@@ -330,6 +335,34 @@ function App() {
           <div className='space-y-4'>
             <input value={ventureForm.name} onChange={(event) => setVentureForm((current) => ({ ...current, name: event.target.value }))} placeholder='Nombre del emprendimiento' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
             <textarea value={ventureForm.description} onChange={(event) => setVentureForm((current) => ({ ...current, description: event.target.value }))} placeholder='Descripción del emprendimiento' rows='3' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <label className='block'>
+                <span className='mb-2 block text-sm font-semibold text-slate-700'>Número de empleados</span>
+                <input
+                  type='number'
+                  min='0'
+                  step='1'
+                  value={ventureForm.employeeCount}
+                  onChange={(event) => setVentureForm((current) => ({ ...current, employeeCount: event.target.value }))}
+                  placeholder='0'
+                  className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none'
+                />
+              </label>
+              <label className='block'>
+                <span className='mb-2 block text-sm font-semibold text-slate-700'>Participación (%)</span>
+                <input
+                  type='number'
+                  min='0'
+                  max='100'
+                  step='0.1'
+                  value={ventureForm.profitShare}
+                  onChange={(event) => setVentureForm((current) => ({ ...current, profitShare: event.target.value }))}
+                  placeholder='0'
+                  className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none'
+                />
+                <p className='mt-1 text-xs text-slate-500'>Porcentaje de la ganancia para empleados.</p>
+              </label>
+            </div>
             <div className='flex justify-end gap-3'>
               <button type='button' onClick={handleCloseVentureModal} className='rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700'>Cancelar</button>
               <button type='button' onClick={handleSaveVenture} className='rounded-full bg-[#082d72] px-4 py-2 text-sm font-semibold text-white'>Guardar</button>

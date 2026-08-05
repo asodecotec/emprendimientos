@@ -100,22 +100,28 @@ export function useAppState() {
     setDraft('')
   }
 
-  const saveVenture = async (name, description) => {
+  const saveVenture = async (name, description, employeeCount, profitShare) => {
     const normalizedName = name.trim()
     if (!normalizedName) return
 
     const normalizedDescription = description.trim() || 'Nuevo emprendimiento'
+    const normalizedEmployeeCount = Math.max(Number(employeeCount || 0), 0)
+    const normalizedProfitShare = Math.max(Math.min(Number(profitShare || 0), 100), 0)
 
     try {
       if (activeItem) {
         await updateCollectionDoc('ventures', activeItem.id, {
           name: normalizedName,
           description: normalizedDescription,
+          employeeCount: normalizedEmployeeCount,
+          profitShare: normalizedProfitShare,
         })
       } else {
         const newVenture = {
           name: normalizedName,
           description: normalizedDescription,
+          employeeCount: normalizedEmployeeCount,
+          profitShare: normalizedProfitShare,
         }
         const newVentureId = createId('venture')
         await createCollectionDoc('ventures', newVentureId, newVenture)
@@ -549,6 +555,37 @@ export function useAppState() {
     const profit = revenue - totalCosts
     const margin = revenue > 0 ? (profit / revenue) * 100 : 0
 
+    const venturesToProcess = ventureFilter ? ventures.filter((v) => v.id === ventureFilter) : ventures
+    let totalEmployeePay = 0
+    let totalEmployees = 0
+
+    venturesToProcess.forEach((venture) => {
+      const ventureSales = sales.filter((sale) => sale.ventureId === venture.id)
+      const ventureRevenue = ventureSales.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+      const ventureShipping = ventureSales.reduce((sum, item) => sum + Number(item.shippingCost || 0), 0)
+      const ventureProductCosts = ventureSales.reduce((sum, sale) => {
+        const productsInSale = Object.entries(sale.selectedProducts || {})
+        return sum + productsInSale.reduce((productSum, [productId, item]) => {
+          const product = products.find((p) => p.id === productId)
+          if (!product) return productSum
+          const cost = getProductCost(product, materials, fixedCosts)
+          return productSum + cost * Number(item.quantity || 1)
+        }, 0)
+      }, 0)
+      const ventureFixedCosts = fixedCosts
+        .filter((fc) => fc.ventureId === venture.id)
+        .reduce((sum, item) => sum + calculateFixedCostTotal(item), 0)
+      const ventureProfit = ventureRevenue - ventureProductCosts - ventureShipping - ventureFixedCosts
+      const employeeCount = Number(venture.employeeCount || 0)
+      const profitShare = Number(venture.profitShare || 0)
+      totalEmployees += employeeCount
+      if (ventureProfit > 0 && profitShare > 0) {
+        totalEmployeePay += ventureProfit * (profitShare / 100)
+      }
+    })
+
+    const payPerEmployee = totalEmployees > 0 ? totalEmployeePay / totalEmployees : 0
+
     return {
       revenue,
       saleCosts,
@@ -558,8 +595,11 @@ export function useAppState() {
       profit,
       margin,
       sales: filtered.length,
+      totalEmployeePay,
+      totalEmployees,
+      payPerEmployee,
     }
-  }, [sales, products, materials, fixedCosts, ventureFilter, filteredFixedCosts])
+  }, [sales, products, materials, fixedCosts, ventures, ventureFilter, filteredFixedCosts])
 
   const stats = useMemo(() => {
     const revenue = sales.reduce((sum, item) => sum + Number(item.amount || 0), 0)

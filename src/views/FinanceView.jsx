@@ -36,6 +36,13 @@ export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVent
         <MetricCard title='Ventas' value={stats.sales} accent='text-[#1769aa]' />
       </div>
 
+      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+        <MetricCard title='Pago empleados' value={formatMoney(stats.totalEmployeePay)} accent='text-[#082d72]' />
+        <MetricCard title='Ganancia neta' value={formatMoney(stats.profit - stats.totalEmployeePay)} accent={stats.profit - stats.totalEmployeePay >= 0 ? 'text-[#168467]' : 'text-red-600'} />
+        <MetricCard title='Pago por empleado' value={formatMoney(stats.payPerEmployee)} accent='text-[#1769aa]' />
+        <MetricCard title='Empleados' value={stats.totalEmployees} accent='text-[#1769aa]' />
+      </div>
+
       <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
         <h2 className='text-lg font-semibold text-slate-900'>Costos fijos</h2>
         <div className='mt-4 grid gap-4 md:grid-cols-2'>

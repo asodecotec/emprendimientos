@@ -47,6 +47,13 @@ export function VenturesView({ ventures, products, filteredVentures, search, onS
                   <h2 className='text-lg font-semibold text-slate-900'>{venture.name}</h2>
                   <p className='mt-1 text-sm text-slate-500'>{venture.description}</p>
                   <p className='mt-3 text-sm font-semibold text-[#1769aa]'>{ventureProducts.length} producto(s)</p>
+                  {(venture.employeeCount > 0 || venture.profitShare > 0) ? (
+                    <p className='mt-1 text-sm text-slate-500'>
+                      {venture.employeeCount > 0 ? `${venture.employeeCount} empleado(s)` : ''}
+                      {venture.employeeCount > 0 && venture.profitShare > 0 ? ' · ' : ''}
+                      {venture.profitShare > 0 ? `${venture.profitShare}% participación` : ''}
+                    </p>
+                  ) : null}
                 </div>
                 <div className='flex flex-wrap gap-2'>
                   {canEdit ? (
