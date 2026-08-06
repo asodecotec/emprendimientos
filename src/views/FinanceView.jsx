@@ -22,21 +22,15 @@ export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVent
         ))}
       </select>
 
-      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+      <div className='flex flex-wrap gap-4'>
         <MetricCard title='Ingresos' value={formatMoney(stats.revenue)} accent='text-[#168467]' />
         <MetricCard title='Costo total' value={formatMoney(stats.totalCosts)} accent='text-[#082d72]' />
         <MetricCard title='Ganancia' value={formatMoney(stats.profit)} accent={stats.profit >= 0 ? 'text-[#168467]' : 'text-red-600'} />
         <MetricCard title='Margen' value={`${stats.margin.toFixed(1)}%`} accent={stats.margin >= 0 ? 'text-[#168467]' : 'text-red-600'} />
-      </div>
-
-      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
         <MetricCard title='Costo de ventas' value={formatMoney(stats.saleCosts)} accent='text-[#082d72]' />
         <MetricCard title='Costos fijos' value={formatMoney(stats.costs)} accent='text-[#082d72]' />
         <MetricCard title='Costos de envío' value={formatMoney(stats.shippingCosts)} accent='text-[#082d72]' />
         <MetricCard title='Ventas' value={stats.sales} accent='text-[#1769aa]' />
-      </div>
-
-      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
         <MetricCard title='Pago empleados' value={formatMoney(stats.totalEmployeePay)} accent='text-[#082d72]' />
         <MetricCard title='Ganancia neta' value={formatMoney(stats.profit - stats.totalEmployeePay)} accent={stats.profit - stats.totalEmployeePay >= 0 ? 'text-[#168467]' : 'text-red-600'} />
         <MetricCard title='Pago por empleado' value={formatMoney(stats.payPerEmployee)} accent='text-[#1769aa]' />

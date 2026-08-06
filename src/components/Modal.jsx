@@ -7,7 +7,9 @@ export function Modal({ title, description, onClose, children }) {
             <h2 className='text-[1.25rem] font-semibold text-[#082d72] sm:text-[1.5rem]'>{title}</h2>
             {description ? <p className='mt-1 text-sm text-slate-500'>{description}</p> : null}
           </div>
-          <button type='button' onClick={onClose} className='rounded-full border border-slate-200 bg-white p-2 text-slate-600'>✕</button>
+          <button type='button' onClick={onClose} className='rounded-full border border-slate-200 bg-white p-2 pt-0.5 text-slate-600 h-8 my-auto'>
+            <span className="transform translate-y-[-50px]">✕</span>
+          </button>
         </div>
         <div className='flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5'>
           {children}

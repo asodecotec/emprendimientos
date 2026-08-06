@@ -1,6 +1,13 @@
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
+function getProductMaterialCost(product, materials) {
+  return Object.entries(product.materials || {}).reduce((sum, [materialId, item]) => {
+    const material = materials.find((m) => m.id === materialId)
+    return sum + (material ? Number(material.cost || 0) * Number(item.quantity || 1) : 0)
+  }, 0)
+}
+
 export function ProductsView({ products, filteredProducts, search, onSearch, materials, ventures, ventureFilter, onVentureFilter, onOpenModal, onDelete, canEdit }) {
   return (
     <section className='space-y-6'>
@@ -58,8 +65,8 @@ export function ProductsView({ products, filteredProducts, search, onSearch, mat
               </div>
               <div className='mt-4 grid gap-3 sm:grid-cols-2'>
                 <div className='rounded-2xl bg-slate-50 p-4'>
-                  <p className='text-sm text-slate-500'>Costo</p>
-                  <p className='mt-1 text-xl font-semibold text-slate-900'>{formatMoney(product.cost)}</p>
+                  <p className='text-sm text-slate-500'>Costo Estimado</p>
+                  <p className='mt-1 text-xl font-semibold text-slate-900'>{formatMoney(getProductMaterialCost(product, materials))}</p>
                 </div>
                 <div className='rounded-2xl bg-slate-50 p-4'>
                   <p className='text-sm text-slate-500'>Materiales</p>

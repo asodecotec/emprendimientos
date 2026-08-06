@@ -19,20 +19,15 @@ test('calcula el costo del producto con materiales como mapa', () => {
     { id: 'mat-2', cost: 5 },
   ]
   const product = {
-    cost: 2,
     materials: { 'mat-1': { quantity: 3 }, 'mat-2': { quantity: 2 } },
-    fixedCostIds: ['fix-1'],
   }
-  const fixedCosts = [{ id: 'fix-1', cost: 4 }]
-  assert.equal(getProductCost(product, materials, fixedCosts), 46)
+  assert.equal(getProductCost(product, materials), 40)
 })
 
 test('ignora materiales inexistentes al calcular el costo', () => {
   const product = {
-    cost: 5,
     materials: { 'mat-1': { quantity: 2 }, 'mat-2': { quantity: 1 } },
-    fixedCostIds: [],
   }
   const materials = [{ id: 'mat-1', cost: 10 }]
-  assert.equal(getProductCost(product, materials, []), 25)
+  assert.equal(getProductCost(product, materials), 20)
 })

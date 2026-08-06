@@ -151,22 +151,15 @@ export function normalize(value) {
   return String(value || '').trim().toLocaleLowerCase('es-419')
 }
 
-export function getProductCost(product, materials, fixedCosts) {
-  const materialCost = Object.entries(product.materials || {}).reduce((sum, [materialId, item]) => {
+export function getProductCost(product, materials) {
+  return Object.entries(product.materials || {}).reduce((sum, [materialId, item]) => {
     const material = materials.find((m) => m.id === materialId)
     return sum + (material ? Number(material.cost || 0) * Number(item.quantity || 1) : 0)
   }, 0)
-
-  const fixedCostTotal = (product.fixedCostIds || []).reduce((sum, id) => {
-    const fixedCost = fixedCosts.find((item) => item.id === id)
-    return sum + (fixedCost ? Number(fixedCost.cost || 0) : 0)
-  }, 0)
-
-  return materialCost + fixedCostTotal + Number(product.cost || 0)
 }
 
-export function getProductMargins(product, materials, fixedCosts) {
-  const cost = getProductCost(product, materials, fixedCosts)
+export function getProductMargins(product, materials) {
+  const cost = getProductCost(product, materials)
   return {
     cost,
     price: cost * 1.35,

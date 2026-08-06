@@ -176,7 +176,7 @@ export function useAppState() {
     }
   }
 
-  const createProduct = async ({ ventureId, name, description, cost, materials }) => {
+  const createProduct = async ({ ventureId, name, description, materials }) => {
     const normalizedName = name.trim()
     if (!normalizedName || !ventureId) return
 
@@ -184,9 +184,7 @@ export function useAppState() {
       ventureId,
       name: normalizedName,
       description: description.trim() || 'Producto nuevo',
-      cost: Number(cost || 0),
       materials: materials || {},
-      fixedCostIds: [],
     }
 
     try {
@@ -566,7 +564,7 @@ export function useAppState() {
       return sum + productsInSale.reduce((productSum, [productId, item]) => {
         const product = products.find((p) => p.id === productId)
         if (!product) return productSum
-        const cost = getProductCost(product, materials, fixedCosts)
+        const cost = getProductCost(product, materials)
         return productSum + cost * Number(item.quantity || 1)
       }, 0)
     }, 0)
@@ -597,7 +595,7 @@ export function useAppState() {
         const saleProductCosts = Object.entries(sale.selectedProducts || {}).reduce((sum, [productId, item]) => {
           const product = products.find((p) => p.id === productId)
           if (!product) return sum
-          const cost = getProductCost(product, materials, fixedCosts)
+          const cost = getProductCost(product, materials)
           return sum + cost * Number(item.quantity || 1)
         }, 0)
         const saleFixedCosts = fixedCosts

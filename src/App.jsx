@@ -3,7 +3,7 @@ import { Sidebar } from './components/Sidebar'
 import { AuthPage } from './components/AuthPage'
 import { useAuth } from './hooks/useAuth'
 import { useAppState } from './hooks/useAppState'
-import { MATERIAL_UNITS, FIXED_COST_FREQUENCIES } from './models/appModel'
+import { MATERIAL_UNITS, FIXED_COST_FREQUENCIES, getProductCost } from './models/appModel'
 import { DashboardView } from './views/DashboardView'
 import { VenturesView } from './views/VenturesView'
 import { ProductsView } from './views/ProductsView'
@@ -211,7 +211,6 @@ function App() {
   const [productForm, setProductForm] = useState({
     name: '',
     description: '',
-    cost: '',
     ventureId: '',
     materials: [],
   })
@@ -223,7 +222,6 @@ function App() {
     setProductForm({
       name: product?.name || '',
       description: product?.description || '',
-      cost: product?.cost != null ? String(product.cost) : '',
       ventureId: product?.ventureId || ventureFilter || ventures[0]?.id || '',
       materials: Object.entries(product?.materials || {}).length ? Object.entries(product.materials).map(([materialId, item]) => ({ materialId, quantity: String(item?.quantity ?? 1) })) : [{ materialId: '', quantity: 1 }],
     })
@@ -256,7 +254,6 @@ function App() {
       ventureId: productForm.ventureId,
       name,
       description: productForm.description.trim() || 'Producto nuevo',
-      cost: Number(productForm.cost || 0),
       materials: productForm.materials
         .filter((row) => row.materialId)
         .reduce((acc, row) => ({ ...acc, [row.materialId]: { quantity: Math.max(Number(row.quantity) || 1, 1) } }), {}),
@@ -336,7 +333,10 @@ function App() {
             <textarea value={ventureForm.description} onChange={(event) => setVentureForm((current) => ({ ...current, description: event.target.value }))} placeholder='Descripción del emprendimiento' rows='3' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
             <div>
               <div className='mb-2 flex items-center justify-between'>
-                <span className='text-sm font-semibold text-slate-700'>Línea de tiempo de empleados</span>
+                <div className='w-120'>
+                  <span className='text-sm font-semibold text-slate-700'>Compensación de Empleados</span>
+                  <p className='text-sm text-slate-400'>La compensación a empleados es mostrada como un registro de los cambios a la compensación y cantidad de empleados a lo largo del tiempo.</p>
+                </div>
                 <button
                   type='button'
                   onClick={() => setVentureForm((current) => ({
@@ -345,26 +345,29 @@ function App() {
                   }))}
                   className='rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50'
                 >
-                  + Agregar entrada
+                  + Registrar cambio
                 </button>
               </div>
               {ventureForm.employeeTimeline.length === 0 ? (
-                <p className='text-sm text-slate-400'>Sin entradas. Los empleados no tendrán participación.</p>
+                <p className='text-sm text-slate-400'>Sin entradas. Los empleados no tendrán ingresos.</p>
               ) : (
                 <div className='space-y-3'>
                   {ventureForm.employeeTimeline.map((entry, index) => (
                     <div key={index} className='rounded-2xl border border-slate-200 bg-slate-50 p-3 space-y-2'>
                       <div className='flex items-center justify-between'>
-                        <input
-                          type='date'
-                          value={entry.startDate}
-                          onChange={(event) => setVentureForm((current) => {
-                            const updated = [...current.employeeTimeline]
-                            updated[index] = { ...updated[index], startDate: event.target.value }
-                            return { ...current, employeeTimeline: updated }
-                          })}
-                          className='rounded-xl border border-slate-300 px-3 py-1.5 text-sm outline-none'
-                        />
+                        <div>
+                          <span className='text-sm text-slate-400 mr-4'>Fecha de Cambio</span>
+                          <input
+                            type='date'
+                            value={entry.startDate}
+                            onChange={(event) => setVentureForm((current) => {
+                              const updated = [...current.employeeTimeline]
+                              updated[index] = { ...updated[index], startDate: event.target.value }
+                              return { ...current, employeeTimeline: updated }
+                            })}
+                            className='rounded-xl border border-slate-300 px-3 py-1.5 text-sm outline-none'
+                          />
+                        </div>
                         <button
                           type='button'
                           onClick={() => setVentureForm((current) => ({
@@ -394,7 +397,7 @@ function App() {
                           />
                         </label>
                         <label className='block'>
-                          <span className='mb-1 block text-xs text-slate-500'>Participación (%)</span>
+                          <span className='mb-1 block text-xs text-slate-500'>Compensación (% de Ganancias)</span>
                           <input
                             type='number'
                             min='0'
@@ -487,10 +490,6 @@ function App() {
             <label className='block'>
               <span className='mb-2 block text-sm font-semibold text-slate-700'>Descripción del producto</span>
               <textarea value={productForm.description} onChange={(event) => setProductForm((current) => ({ ...current, description: event.target.value }))} rows='3' className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
-            </label>
-            <label className='block'>
-              <span className='mb-2 block text-sm font-semibold text-slate-700'>Costo del producto ($)</span>
-              <input type='number' min='0' step='0.01' value={productForm.cost} onChange={(event) => setProductForm((current) => ({ ...current, cost: event.target.value }))} className='w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none' />
             </label>
             <label className='block'>
               <span className='mb-2 block text-sm font-semibold text-slate-700'>Emprendimiento</span>
@@ -677,7 +676,8 @@ function App() {
       const totalCost = saleForm.soldProducts.reduce((sum, row) => {
         if (!row.productId) return sum
         const product = products.find((item) => item.id === row.productId)
-        return sum + Number(product?.cost || 0) * Math.max(Number(row.quantity) || 1, 1)
+        if (!product) return sum
+        return sum + getProductCost(product, materials) * Math.max(Number(row.quantity) || 1, 1)
       }, 0)
       const priceValue = Number(saleForm.price || 0)
       const computedMargin = totalCost > 0 && priceValue > 0 ? ((priceValue - totalCost) / totalCost) * 100 : 0
