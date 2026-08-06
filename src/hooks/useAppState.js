@@ -625,6 +625,56 @@ export function useAppState() {
     }
   }, [sales, products, materialsWithStock, fixedCosts, ventures, ventureFilter, filteredFixedCosts])
 
+  const ventureBreakdown = useMemo(() => {
+    return ventures.map((venture) => {
+      const ventureSales = sales.filter((sale) => sale.ventureId === venture.id)
+      const revenue = ventureSales.reduce((sum, sale) => sum + Number(sale.amount || 0), 0)
+      const shippingCosts = ventureSales.reduce((sum, sale) => sum + Number(sale.shippingCost || 0), 0)
+
+      const costOfSale = ventureSales.reduce((sum, sale) => {
+        return sum + Object.entries(sale.selectedProducts || {}).reduce((productSum, [productId, item]) => {
+          const product = products.find((p) => p.id === productId)
+          if (!product) return productSum
+          return productSum + getProductCost(product, materialsWithStock) * Number(item.quantity || 1)
+        }, 0)
+      }, 0)
+
+      const ventureFixedCosts = fixedCosts
+        .filter((fc) => fc.ventureId === venture.id)
+        .reduce((sum, item) => sum + calculateFixedCostTotal(item), 0)
+
+      const timeline = venture.employeeTimeline || []
+      let employeePay = 0
+      ventureSales.forEach((sale) => {
+        const entry = getActiveEmployeeEntry(timeline, sale.date)
+        if (entry.profitShare <= 0) return
+        const saleRevenue = Number(sale.amount || 0)
+        const saleProductCosts = Object.entries(sale.selectedProducts || {}).reduce((sum, [productId, item]) => {
+          const product = products.find((p) => p.id === productId)
+          if (!product) return sum
+          return sum + getProductCost(product, materialsWithStock) * Number(item.quantity || 1)
+        }, 0)
+        const saleShipping = Number(sale.shippingCost || 0)
+        const saleFixedCosts = ventureSales.length > 0 ? ventureFixedCosts / ventureSales.length : 0
+        const saleProfit = saleRevenue - saleProductCosts - saleShipping - saleFixedCosts
+        if (saleProfit > 0) employeePay += saleProfit * (entry.profitShare / 100)
+      })
+
+      const netProfit = revenue - costOfSale - shippingCosts - ventureFixedCosts - employeePay
+
+      return {
+        id: venture.id,
+        name: venture.name,
+        revenue,
+        costOfSale,
+        shippingCosts,
+        fixedCosts: ventureFixedCosts,
+        employeePay,
+        netProfit,
+      }
+    })
+  }, [ventures, sales, products, materialsWithStock, fixedCosts])
+
   const stats = useMemo(() => {
     const revenue = sales.reduce((sum, item) => sum + Number(item.amount || 0), 0)
     const shippingCosts = sales.reduce((sum, item) => sum + Number(item.shippingCost || 0), 0)
@@ -667,6 +717,7 @@ export function useAppState() {
     filteredSales,
     filteredFixedCosts,
     financeStats,
+    ventureBreakdown,
     stats,
     recent,
     saveVenture,
