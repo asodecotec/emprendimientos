@@ -1,8 +1,7 @@
 import { MetricCard } from '../components/MetricCard'
-import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-export function DashboardView({ stats, onNavigate }) {
+export function DashboardView({ stats }) {
   return (
     <section className='space-y-6'>
       <header>

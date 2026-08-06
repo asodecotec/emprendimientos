@@ -1,10 +1,15 @@
+import { useMemo } from 'react'
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
 export function PurchasesView({ purchases, filteredPurchases, materials, ventures, ventureFilter, recent, search, onSearch, onVentureFilter, onOpenModal, onDelete, canEdit }) {
-  const splitIndex = filteredPurchases.findIndex((purchase) => !recent[purchase.id])
-  const recentItems = splitIndex === -1 ? filteredPurchases : filteredPurchases.slice(0, splitIndex)
-  const dateItems = splitIndex === -1 ? [] : filteredPurchases.slice(splitIndex)
+  const { recentItems, dateItems } = useMemo(() => {
+    const splitIndex = filteredPurchases.findIndex((purchase) => !recent[purchase.id])
+    return {
+      recentItems: splitIndex === -1 ? filteredPurchases : filteredPurchases.slice(0, splitIndex),
+      dateItems: splitIndex === -1 ? [] : filteredPurchases.slice(splitIndex),
+    }
+  }, [filteredPurchases, recent])
 
   return (
     <section className='space-y-6'>

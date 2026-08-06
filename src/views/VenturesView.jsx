@@ -1,10 +1,18 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { EmptyState } from '../components/EmptyState'
 import { Modal } from '../components/Modal'
 import { formatMoney } from '../models/appModel'
 
 export function VenturesView({ ventures, products, filteredVentures, search, onSearch, onOpenModal, onDelete, onNavigateToSection, onAddFixedCost, onEditFixedCost, onDeleteFixedCost, canEdit }) {
   const [pendingDelete, setPendingDelete] = useState(null)
+
+  const ventureProductCounts = useMemo(() => {
+    const map = {}
+    for (const product of products) {
+      map[product.ventureId] = (map[product.ventureId] || 0) + 1
+    }
+    return map
+  }, [products])
 
   const openDeleteConfirm = (venture) => {
     setPendingDelete(venture)
@@ -39,14 +47,14 @@ export function VenturesView({ ventures, products, filteredVentures, search, onS
 
       <div className='space-y-4'>
         {filteredVentures.map((venture) => {
-          const ventureProducts = products.filter((product) => product.ventureId === venture.id)
+          const ventureProductCount = ventureProductCounts[venture.id] || 0
           return (
             <article key={venture.id} className='rounded-3xl border border-slate-200 bg-white p-5 shadow-sm'>
               <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
                 <div>
                   <h2 className='text-lg font-semibold text-slate-900'>{venture.name}</h2>
                   <p className='mt-1 text-sm text-slate-500'>{venture.description}</p>
-                  <p className='mt-3 text-sm font-semibold text-[#1769aa]'>{ventureProducts.length} producto(s)</p>
+                  <p className='mt-3 text-sm font-semibold text-[#1769aa]'>{ventureProductCount} producto(s)</p>
                   {(() => {
                     const timeline = venture.employeeTimeline || []
                     if (!timeline.length) return null

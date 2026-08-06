@@ -1,10 +1,15 @@
+import { useMemo } from 'react'
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
 export function SalesView({ sales, ventures, products, ventureFilter, recent, search, onSearch, onVentureFilter, onOpenModal, onDelete, onTogglePaid, canEdit }) {
-  const splitIndex = sales.findIndex((sale) => !recent[sale.id])
-  const recentItems = splitIndex === -1 ? sales : sales.slice(0, splitIndex)
-  const dateItems = splitIndex === -1 ? [] : sales.slice(splitIndex)
+  const { recentItems, dateItems } = useMemo(() => {
+    const splitIndex = sales.findIndex((sale) => !recent[sale.id])
+    return {
+      recentItems: splitIndex === -1 ? sales : sales.slice(0, splitIndex),
+      dateItems: splitIndex === -1 ? [] : sales.slice(splitIndex),
+    }
+  }, [sales, recent])
 
   return (
     <section className='space-y-6'>

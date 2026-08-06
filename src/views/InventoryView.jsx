@@ -53,7 +53,7 @@ export function InventoryView({ materials, filteredMaterials, search, onSearch, 
               <div className='mt-4 grid gap-3 sm:grid-cols-2'>
                 <div className='rounded-2xl bg-slate-50 p-4'>
                   <p className='text-sm text-slate-500'>Costo promedio</p>
-                  <p className='mt-1 text-xl font-semibold text-slate-900'>{formatMoney(material.avgCost)}</p>
+                  <p className='mt-1 text-xl font-semibold text-slate-900'>{formatMoney(material.avgCost, 3)}</p>
                 </div>
                 <div className='rounded-2xl bg-slate-50 p-4'>
                   <p className='text-sm text-slate-500'>Stock</p>

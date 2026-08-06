@@ -3,7 +3,7 @@ import { Sidebar } from './components/Sidebar'
 import { AuthPage } from './components/AuthPage'
 import { useAuth } from './hooks/useAuth'
 import { useAppState } from './hooks/useAppState'
-import { MATERIAL_UNITS, FIXED_COST_FREQUENCIES, getProductCost } from './models/appModel'
+import { MATERIAL_UNITS, FIXED_COST_FREQUENCIES, getProductCost, formatMoney } from './models/appModel'
 import { DashboardView } from './views/DashboardView'
 import { VenturesView } from './views/VenturesView'
 import { ProductsView } from './views/ProductsView'
@@ -72,7 +72,6 @@ function App() {
   const canRead = (Boolean(user) && !whitelistPending) || isGuest
   const canOpenModal = canEdit
   const canDelete = canEdit
-  const canCreate = canEdit
 
   const [ventureForm, setVentureForm] = useState({ name: '', description: '', employeeTimeline: [] })
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -314,7 +313,7 @@ function App() {
 
   const currentView = useMemo(() => {
     if (view === 'ventures') return <VenturesView ventures={ventures} products={products} filteredVentures={filteredVentures} search={search} onSearch={setSearch} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'venture') handleOpenVentureModal(item) }} onNavigateToSection={handleNavigateToVentureSection} onDelete={(type, item) => { if (type === 'venture' && canDelete) removeVenture(item.id) }} onAddFixedCost={(venture) => handleOpenFixedCostModal(venture)} onEditFixedCost={(venture, item) => handleOpenFixedCostModal(venture, item)} onDeleteFixedCost={(venture, item) => { if (canDelete) removeFixedCost({ ventureId: venture.id, fixedCostId: item.id }) }} />
-    if (view === 'products') return <ProductsView products={products} filteredProducts={filteredProducts} search={search} onSearch={setSearch} materials={materials} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'product') handleOpenProductModal(item) }} onDelete={(type, item) => { if (type === 'product' && canDelete) removeProduct(item.id) }} />
+    if (view === 'products') return <ProductsView products={products} filteredProducts={filteredProducts} search={search} onSearch={setSearch} materials={materialsWithStock} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'product') handleOpenProductModal(item) }} onDelete={(type, item) => { if (type === 'product' && canDelete) removeProduct(item.id) }} />
     if (view === 'inventory') return <InventoryView materials={materialsWithStock} filteredMaterials={filteredMaterialsWithStock} search={search} onSearch={setSearch} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'material') handleOpenMaterialModal(item) }} onDelete={(type, item) => { if (type === 'material' && canDelete) removeMaterial(item.id) }} />
     if (view === 'purchases') return <PurchasesView purchases={purchases} filteredPurchases={filteredPurchases} materials={materials} ventures={ventures} ventureFilter={ventureFilter} recent={recent} search={search} onSearch={setSearch} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={handleOpenPurchaseModal} onDelete={(type, item) => { if (type === 'purchase' && canDelete) removePurchase(item.id) }} />
     if (view === 'finance') return <FinanceView fixedCosts={filteredFixedCosts} stats={financeStats} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} />
@@ -673,15 +672,15 @@ function App() {
     if (modal === 'sale') {
       const selectedSaleVentureId = saleForm.ventureId || ventures[0]?.id || ''
       const availableProducts = products.filter((product) => product.ventureId === selectedSaleVentureId)
+      const shippingCost = Number(saleForm.shippingCost || 0)
       const totalCost = saleForm.soldProducts.reduce((sum, row) => {
         if (!row.productId) return sum
         const product = products.find((item) => item.id === row.productId)
         if (!product) return sum
-        return sum + getProductCost(product, materials) * Math.max(Number(row.quantity) || 1, 1)
+        return sum + getProductCost(product, materialsWithStock) * Math.max(Number(row.quantity) || 1, 1)
       }, 0)
-      const priceValue = Number(saleForm.price || 0)
-      const computedMargin = totalCost > 0 && priceValue > 0 ? ((priceValue - totalCost) / totalCost) * 100 : 0
-      const displayedMargin = saleForm.margin === '' ? computedMargin : Number(saleForm.margin || 0)
+      const costWithShipping = totalCost + shippingCost
+      const displayedMargin = saleForm.margin === '' ? '' : saleForm.margin
 
       return (
         <Modal title={activeItem ? 'Editar venta' : 'Registrar venta'} description='Selecciona productos, variantes y cantidades.' onClose={closeModal}>
@@ -826,16 +825,10 @@ function App() {
             <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
               <h3 className='text-lg font-semibold text-[#082d72]'>Importes de la venta</h3>
               <div className='mt-4 grid gap-4 sm:grid-cols-2'>
-                <label className='block'>
+                <div>
                   <span className='mb-2 block text-sm font-semibold text-slate-700'>Costo total</span>
-                  <input
-                    type='number'
-                    value={totalCost}
-                    placeholder='0'
-                    className='w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[#082d72]'
-                    readOnly
-                  />
-                </label>
+                  <p className='w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700'>{formatMoney(totalCost)}</p>
+                </div>
                 <label className='block'>
                   <span className='mb-2 block text-sm font-semibold text-slate-700'>Costo de envío</span>
                   <input
@@ -843,7 +836,14 @@ function App() {
                     value={saleForm.shippingCost}
                     min='0'
                     step='0.01'
-                    onChange={(event) => setSaleForm((current) => ({ ...current, shippingCost: event.target.value }))}
+                    onChange={(event) => {
+                      const nextShipping = event.target.value
+                      const nextShippingCost = Number(nextShipping || 0)
+                      const newCostWithShipping = totalCost + nextShippingCost
+                      const nextPrice = Number(saleForm.price || 0)
+                      const nextMargin = newCostWithShipping > 0 && nextPrice > 0 ? Math.round(((nextPrice - newCostWithShipping) / newCostWithShipping) * 100 * 100) / 100 : ''
+                      setSaleForm((current) => ({ ...current, shippingCost: nextShipping, margin: String(nextMargin) }))
+                    }}
                     placeholder='0'
                     className='w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[#082d72]'
                   />
@@ -857,7 +857,7 @@ function App() {
                     step='0.01'
                     onChange={(event) => {
                       const nextPrice = event.target.value
-                      const nextMargin = totalCost > 0 && Number(nextPrice) > 0 ? ((Number(nextPrice) - totalCost) / totalCost) * 100 : 0
+                      const nextMargin = nextPrice !== '' && costWithShipping > 0 && Number(nextPrice) > 0 ? Math.round(((Number(nextPrice) - costWithShipping) / costWithShipping) * 100 * 100) / 100 : ''
                       setSaleForm((current) => ({ ...current, price: nextPrice, margin: String(nextMargin) }))
                     }}
                     placeholder='0'
@@ -873,7 +873,7 @@ function App() {
                     step='0.01'
                     onChange={(event) => {
                       const nextMargin = event.target.value
-                      const nextPrice = totalCost > 0 ? totalCost * (1 + Number(nextMargin || 0) / 100) : 0
+                      const nextPrice = nextMargin !== '' && costWithShipping > 0 ? Math.round(costWithShipping * (1 + Number(nextMargin || 0) / 100) * 100) / 100 : ''
                       setSaleForm((current) => ({ ...current, margin: nextMargin, price: String(nextPrice) }))
                     }}
                     placeholder='0'

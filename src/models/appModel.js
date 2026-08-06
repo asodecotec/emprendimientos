@@ -94,44 +94,19 @@ export const starterData = {
   products: [],
   sales: [],
 }
-// Starter data that can be used for testing
-// export const starterData = {
-//   ventures: [
-//     { id: 'venture-1', name: 'Café de barrio', description: 'Emprendimiento de café y postres', products: 2 },
-//     { id: 'venture-2', name: 'Tienda artesanal', description: 'Venta de productos hechos a mano', products: 1 },
-//   ],
-//   materials: [
-//     { id: 'material-1', name: 'Café molido', unit: 'kg', cost: 14, ventureId: 'venture-1' },
-//     { id: 'material-2', name: 'Azúcar', unit: 'kg', cost: 3.2, ventureId: 'venture-1' },
-//     { id: 'material-3', name: 'Cuentas de madera', unit: 'ud', cost: 5, ventureId: 'venture-2' },
-//   ],
-//   purchases: [
-//     { id: 'purchase-1', materialId: 'material-1', date: '2026-07-05', quantity: 25, cost: 350 },
-//     { id: 'purchase-2', materialId: 'material-1', date: '2026-07-15', quantity: 15, cost: 210 },
-//     { id: 'purchase-3', materialId: 'material-2', date: '2026-07-12', quantity: 25, cost: 80 },
-//     { id: 'purchase-4', materialId: 'material-3', date: '2026-07-18', quantity: 50, cost: 250 },
-//   ],
-//   fixedCosts: [
-//     { id: 'fixed-1', name: 'Alquiler', cost: 320, ventureId: 'venture-1' },
-//     { id: 'fixed-2', name: 'Transporte', cost: 95, ventureId: 'venture-2' },
-//   ],
-//   products: [
-//     { id: 'product-1', ventureId: 'venture-1', name: 'Combo clásico', description: 'Café + postre', cost: 48, materials: { 'material-1': { quantity: 1 }, 'material-2': { quantity: 2 } } },
-//     { id: 'product-2', ventureId: 'venture-1', name: 'Especial frío', description: 'Bebida premium', cost: 61, materials: { 'material-1': { quantity: 2 } } },
-//     { id: 'product-3', ventureId: 'venture-2', name: 'Pack artesanal', description: 'Kit de regalo', cost: 34, materials: { 'material-3': { quantity: 4 } } },
-//   ],
-//   sales: [
-//     { id: 'sale-1', ventureId: 'venture-1', date: '2026-07-20', units: 6, amount: 360 },
-//     { id: 'sale-2', ventureId: 'venture-2', date: '2026-07-22', units: 5, amount: 170 },
-//   ],
-// }
 
-export function formatMoney(value) {
-  return new Intl.NumberFormat('es-CO', {
+export function formatMoney(value, minimumSignificantDigits=undefined) {
+  let options = {
     style: 'currency',
     currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(Number(value) || 0)
+    maximumFractionDigits: 2,
+  }
+  if (minimumSignificantDigits) options = {
+    ...options,
+    maximumSignificantDigits: 4,
+    minimumSignificantDigits,
+  }
+  return new Intl.NumberFormat('es-CO', options).format(Number(value) || 0) 
 }
 
 export function formatNumber(value) {
@@ -154,7 +129,7 @@ export function normalize(value) {
 export function getProductCost(product, materials) {
   return Object.entries(product.materials || {}).reduce((sum, [materialId, item]) => {
     const material = materials.find((m) => m.id === materialId)
-    return sum + (material ? Number(material.cost || 0) * Number(item.quantity || 1) : 0)
+    return sum + (material ? Number(material.avgCost || 0) * Number(item.quantity || 1) : 0)
   }, 0)
 }
 

@@ -1,14 +1,39 @@
+import { useMemo } from 'react'
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney } from '../models/appModel'
 
-function getProductMaterialCost(product, materials) {
+function computeProductMaterialCost(product, materials) {
   return Object.entries(product.materials || {}).reduce((sum, [materialId, item]) => {
     const material = materials.find((m) => m.id === materialId)
-    return sum + (material ? Number(material.cost || 0) * Number(item.quantity || 1) : 0)
+    return sum + (material ? Number(material.avgCost || 0) * Number(item.quantity || 1) : 0)
   }, 0)
 }
 
+function computeProductMaterialLabels(product, materials) {
+  return Object.entries(product.materials || {})
+    .map(([materialId, item]) => {
+      const material = materials.find((m) => m.id === materialId)
+      return material ? `${material.name} ×${item.quantity}` : null
+    })
+    .filter(Boolean)
+}
+
 export function ProductsView({ products, filteredProducts, search, onSearch, materials, ventures, ventureFilter, onVentureFilter, onOpenModal, onDelete, canEdit }) {
+  const productCosts = useMemo(() => {
+    const map = {}
+    for (const product of filteredProducts) {
+      map[product.id] = computeProductMaterialCost(product, materials)
+    }
+    return map
+  }, [filteredProducts, materials])
+
+  const productMaterialLabels = useMemo(() => {
+    const map = {}
+    for (const product of filteredProducts) {
+      map[product.id] = computeProductMaterialLabels(product, materials)
+    }
+    return map
+  }, [filteredProducts, materials])
   return (
     <section className='space-y-6'>
       <header className='flex flex-col justify-between gap-4 sm:flex-row sm:items-end'>
@@ -40,12 +65,7 @@ export function ProductsView({ products, filteredProducts, search, onSearch, mat
       <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
         {filteredProducts.map((product) => {
           const venture = ventures.find((item) => item.id === product.ventureId)
-          const productMaterials = Object.entries(product.materials || {})
-            .map(([materialId, item]) => {
-              const material = materials.find((m) => m.id === materialId)
-              return material ? `${material.name} ×${item.quantity}` : null
-            })
-            .filter(Boolean)
+          const productMaterials = productMaterialLabels[product.id] || []
           return (
             <article key={product.id} className='rounded-3xl border border-slate-200 bg-white p-5 shadow-sm'>
               <div className='flex items-start justify-between gap-3'>
@@ -66,7 +86,7 @@ export function ProductsView({ products, filteredProducts, search, onSearch, mat
               <div className='mt-4 grid gap-3 sm:grid-cols-2'>
                 <div className='rounded-2xl bg-slate-50 p-4'>
                   <p className='text-sm text-slate-500'>Costo Estimado</p>
-                  <p className='mt-1 text-xl font-semibold text-slate-900'>{formatMoney(getProductMaterialCost(product, materials))}</p>
+                  <p className='mt-1 text-xl font-semibold text-slate-900'>{formatMoney(productCosts[product.id] || 0)}</p>
                 </div>
                 <div className='rounded-2xl bg-slate-50 p-4'>
                   <p className='text-sm text-slate-500'>Materiales</p>

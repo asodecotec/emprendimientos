@@ -564,7 +564,7 @@ export function useAppState() {
       return sum + productsInSale.reduce((productSum, [productId, item]) => {
         const product = products.find((p) => p.id === productId)
         if (!product) return productSum
-        const cost = getProductCost(product, materials)
+        const cost = getProductCost(product, materialsWithStock)
         return productSum + cost * Number(item.quantity || 1)
       }, 0)
     }, 0)
@@ -595,7 +595,7 @@ export function useAppState() {
         const saleProductCosts = Object.entries(sale.selectedProducts || {}).reduce((sum, [productId, item]) => {
           const product = products.find((p) => p.id === productId)
           if (!product) return sum
-          const cost = getProductCost(product, materials)
+          const cost = getProductCost(product, materialsWithStock)
           return sum + cost * Number(item.quantity || 1)
         }, 0)
         const saleFixedCosts = fixedCosts
@@ -623,7 +623,7 @@ export function useAppState() {
       totalEmployees,
       payPerEmployee,
     }
-  }, [sales, products, materials, fixedCosts, ventures, ventureFilter, filteredFixedCosts])
+  }, [sales, products, materialsWithStock, fixedCosts, ventures, ventureFilter, filteredFixedCosts])
 
   const stats = useMemo(() => {
     const revenue = sales.reduce((sum, item) => sum + Number(item.amount || 0), 0)

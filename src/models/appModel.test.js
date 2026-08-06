@@ -15,8 +15,8 @@ test('devuelve el valor original cuando la conversión no es compatible', () => 
 
 test('calcula el costo del producto con materiales como mapa', () => {
   const materials = [
-    { id: 'mat-1', cost: 10 },
-    { id: 'mat-2', cost: 5 },
+    { id: 'mat-1', avgCost: 10 },
+    { id: 'mat-2', avgCost: 5 },
   ]
   const product = {
     materials: { 'mat-1': { quantity: 3 }, 'mat-2': { quantity: 2 } },
@@ -28,6 +28,6 @@ test('ignora materiales inexistentes al calcular el costo', () => {
   const product = {
     materials: { 'mat-1': { quantity: 2 }, 'mat-2': { quantity: 1 } },
   }
-  const materials = [{ id: 'mat-1', cost: 10 }]
+  const materials = [{ id: 'mat-1', avgCost: 10 }]
   assert.equal(getProductCost(product, materials), 20)
 })
