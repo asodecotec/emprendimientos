@@ -66,7 +66,7 @@ export function VenturesView({ ventures, products, filteredVentures, search, onS
                           <p className='text-sm text-slate-500'>
                             {current.employeeCount > 0 ? `${current.employeeCount} empleado(s)` : ''}
                             {current.employeeCount > 0 && current.profitShare > 0 ? ' · ' : ''}
-                            {current.profitShare > 0 ? `${current.profitShare}% participación` : ''}
+                            {current.profitShare > 0 ? `Compensación de ${current.profitShare}% ` : ''}
                           </p>
                         ) : null}
                         {sorted.length > 1 ? (

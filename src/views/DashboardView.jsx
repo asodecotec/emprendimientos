@@ -1,14 +1,20 @@
+import { useState } from 'react'
 import { MetricCard } from '../components/MetricCard'
 import { formatMoney } from '../models/appModel'
 
 const SEGMENTS = [
-  { key: 'costOfSale', label: 'Costo de venta', color: 'bg-amber-400' },
-  { key: 'fixedCosts', label: 'Costos fijos', color: 'bg-orange-400' },
-  { key: 'employeePay', label: 'Empleados', color: 'bg-blue-400' },
   { key: 'netProfit', label: 'Ganancia neta', color: 'bg-emerald-500' },
+  { key: 'employeePay', label: 'Empleados', color: 'bg-blue-400' },
+  { key: 'fixedCosts', label: 'Costos fijos', color: 'bg-orange-400' },
+  { key: 'costOfSale', label: 'Costo de venta', color: 'bg-amber-400' },
 ]
 
 export function DashboardView({ stats, ventureBreakdown }) {
+  const [focusedId, setFocusedId] = useState(null)
+
+  const focused = focusedId ? ventureBreakdown.find((v) => v.id === focusedId) : null
+  const scaleRevenue = focused ? focused.revenue : Math.max(...ventureBreakdown.map((v) => v.revenue), 1)
+
   return (
     <section className='space-y-6'>
       <header>
@@ -28,7 +34,7 @@ export function DashboardView({ stats, ventureBreakdown }) {
       {ventureBreakdown.length > 0 ? (
         <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
           <h2 className='mb-2 text-lg font-semibold text-slate-900'>Ingresos por emprendimiento</h2>
-          <p className='mb-6 text-sm text-slate-500'>Desglose de costos y ganancia neta.</p>
+          <p className='mb-6 text-sm text-slate-500'>Desglose de costos y ganancia neta. Haz clic en una barra para enfocarla.</p>
 
           <div className='flex gap-3 mb-4'>
             {SEGMENTS.map(({ key, label, color }) => (
@@ -39,40 +45,46 @@ export function DashboardView({ stats, ventureBreakdown }) {
             ))}
           </div>
 
-          <div className='flex items-stretch gap-4 h-[330px]'>
-            {(() => {
-              const maxRevenue = Math.max(...ventureBreakdown.map((v) => v.revenue), 1)
-              return ventureBreakdown.map((venture) => {
-                const segments = SEGMENTS.map(({ key, label, color }) => ({
-                  key,
-                  label,
-                  color,
-                  value: venture[key],
-                }))
-                const total = segments.reduce((sum, s) => sum + s.value, 0)
-                const barPct = Math.max((venture.revenue / maxRevenue) * 100, total > 0 ? 5 : 0)
-                return (
-                  <div key={venture.id} className='flex flex-1 flex-col items-center justify-end gap-1 h-full'>
-                    <span className='text-xs font-semibold text-slate-700 whitespace-nowrap'>{formatMoney(venture.revenue)}</span>
+          <div className='space-y-4'>
+            {ventureBreakdown.map((venture) => {
+              const segments = SEGMENTS.map(({ key, label, color }) => ({
+                key,
+                label,
+                color,
+                value: venture[key],
+              }))
+              const total = segments.reduce((sum, s) => sum + s.value, 0)
+              const barPct = scaleRevenue > 0 ? (venture.revenue / scaleRevenue) * 100 : 0
+              const isFocused = focusedId === venture.id
+              return (
+                <div
+                  key={venture.id}
+                  className={`cursor-pointer rounded-lg transition-all ${isFocused ? 'ring-2 ring-[#082d72] ring-offset-2' : 'hover:bg-slate-50'}`}
+                  onClick={() => setFocusedId(isFocused ? null : venture.id)}
+                >
+                  <div className='flex items-baseline justify-between mb-1 px-2'>
+                    <span className='text-sm font-semibold text-slate-700 truncate' title={venture.name}>{venture.name}</span>
+                    <span className='text-xs font-semibold text-slate-500 whitespace-nowrap ml-2'>{formatMoney(venture.revenue)}</span>
+                  </div>
+                  <div className='h-8 flex'>
                     {total > 0 ? (
-                      <div className='w-full flex flex-col justify-end' style={{ height: `${barPct}%` }}>
+                      <div className='h-full flex transition-[width] duration-200' style={{ width: `${barPct}%` }}>
                         {segments.map(({ key, label, color, value }) => (
                           <div
                             key={key}
-                            className={`w-full min-h-px ${color} first:rounded-t last:rounded-b`}
+                            className={`h-full ${color} first:rounded-l last:rounded-r transition-[flex-grow] duration-200`}
                             style={{ flexGrow: value }}
                             title={`${label}: ${formatMoney(value)}`}
                           />
                         ))}
                       </div>
                     ) : (
-                      <div className='w-full' style={{ height: `${barPct}%` }} />
+                      <div className='h-full transition-[width] duration-200' style={{ width: `${barPct}%` }} />
                     )}
-                    <span className='mt-1 text-xs text-slate-500 text-center leading-tight'>{venture.name}</span>
                   </div>
-                )
-              })
-            })()}
+                </div>
+              )
+            })}
           </div>
         </div>
       ) : null}
