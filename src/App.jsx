@@ -317,7 +317,7 @@ function App() {
     if (view === 'products') return <ProductsView products={products} filteredProducts={filteredProducts} search={search} onSearch={setSearch} materials={materialsWithStock} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'product') handleOpenProductModal(item) }} onDelete={(type, item) => { if (type === 'product' && canDelete) removeProduct(item.id) }} />
     if (view === 'inventory') return <InventoryView materials={materialsWithStock} filteredMaterials={filteredMaterialsWithStock} search={search} onSearch={setSearch} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'material') handleOpenMaterialModal(item) }} onDelete={(type, item) => { if (type === 'material' && canDelete) removeMaterial(item.id) }} />
     if (view === 'purchases') return <PurchasesView purchases={purchases} filteredPurchases={filteredPurchases} materials={materials} ventures={ventures} ventureFilter={ventureFilter} recent={recent} search={search} onSearch={setSearch} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={handleOpenPurchaseModal} onDelete={(type, item) => { if (type === 'purchase' && canDelete) removePurchase(item.id) }} />
-    if (view === 'finance') return <FinanceView fixedCosts={filteredFixedCosts} stats={financeStats} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} />
+    if (view === 'finance') return <FinanceView fixedCosts={filteredFixedCosts} stats={financeStats} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onAddFixedCost={() => handleOpenFixedCostModal()} onEditFixedCost={(item) => handleOpenFixedCostModal(null, item)} onEditVenture={(venture) => handleOpenVentureModal(venture)} />
     if (view === 'sales') return <SalesView sales={filteredSales} ventures={ventures} products={products} ventureFilter={ventureFilter} recent={recent} search={search} onSearch={setSearch} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'sale') handleOpenSaleModal(item) }} onDelete={(type, item) => { if (type === 'sale' && canDelete) removeSale(item.id) }} onTogglePaid={(sale) => updateSale(sale.id, { ...sale, paid: !sale.paid })} />
     return <DashboardView stats={stats} ventureBreakdown={ventureBreakdown} onNavigate={setView} />
   }, [financeStats, ventureBreakdown, filteredFixedCosts, filteredMaterialsWithStock, filteredProducts, filteredPurchases, filteredSales, filteredVentures, handleNavigateToVentureSection, handleOpenFixedCostModal, handleOpenMaterialModal, handleOpenProductModal, handleOpenPurchaseModal, handleOpenSaleModal, handleOpenVentureModal, materials, materialsWithStock, products, purchases, recent, removeFixedCost, removeMaterial, removeProduct, removePurchase, removeSale, removeVenture, search, setSearch, setView, setVentureFilter, stats, updateSale, ventures, ventureFilter, view, canEdit, canDelete])
@@ -1007,28 +1007,6 @@ function App() {
               </svg>
             </button>
           </div>
-          <header className='mb-6 rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm'>
-            <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
-              <div>
-                <p className='text-xs uppercase tracking-[0.3em] text-slate-500'>Panel operativo</p>
-                <h1 className='mt-2 text-2xl font-semibold text-slate-900'>ASODECO</h1>
-                <p className='mt-2 text-sm text-slate-600'>Versión modular y organizada para gestión de emprendimientos.</p>
-              </div>
-              <div className='flex flex-col items-end gap-2 sm:flex-row sm:items-center'>
-                {user ? (
-                  <div className='rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700'>
-                    {user.email}
-                  </div>
-                ) : (
-                  <div className='rounded-full border border-slate-200 bg-blue-50 px-4 py-2 text-sm text-blue-700'>
-                    Invitado
-                  </div>
-                )}
-                <button type='button' onClick={logout} className='rounded-full bg-[#082d72] px-4 py-2 text-sm font-semibold text-white hover:bg-[#061f53]'>Cerrar sesión</button>
-              </div>
-            </div>
-          </header>
-
           {currentView}
         </main>
       </div>

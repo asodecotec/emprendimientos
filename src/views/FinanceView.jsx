@@ -2,7 +2,7 @@ import { MetricCard } from '../components/MetricCard'
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney, calculateFixedCostTotal, FIXED_COST_FREQUENCIES } from '../models/appModel'
 
-export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVentureFilter }) {
+export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVentureFilter, canEdit, onAddFixedCost, onEditFixedCost, onEditVenture }) {
   return (
     <section className='space-y-6'>
       <header>
@@ -38,7 +38,12 @@ export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVent
       </div>
 
       <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
-        <h2 className='text-lg font-semibold text-slate-900'>Costos fijos</h2>
+        <div className='flex items-center justify-between'>
+          <h2 className='text-lg font-semibold text-slate-900'>Costos fijos</h2>
+          {canEdit ? (
+            <button type='button' onClick={onAddFixedCost} className='rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50'>+ Agregar</button>
+          ) : null}
+        </div>
         <div className='mt-4 grid gap-4 md:grid-cols-2'>
           {fixedCosts.map((item) => {
             const freq = FIXED_COST_FREQUENCIES.find((f) => f.value === item.frequency)
@@ -54,7 +59,12 @@ export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVent
                       {item.endDate ? ` · Hasta ${item.endDate}` : ''}
                     </p>
                   </div>
-                  <span className='shrink-0 text-sm font-semibold text-[#168467]'>{formatMoney(total)}</span>
+                  <div className='flex shrink-0 items-center gap-2'>
+                    <span className='text-sm font-semibold text-[#168467]'>{formatMoney(total)}</span>
+                    {canEdit ? (
+                      <button type='button' onClick={() => onEditFixedCost(item)} className='rounded-full border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100'>Editar</button>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             )
@@ -62,6 +72,39 @@ export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVent
         </div>
         {fixedCosts.length === 0 ? <EmptyState title='Sin costos fijos' description='Agrega tus gastos recurrentes para incluirlos en la operación.' /> : null}
       </div>
+
+      {ventureFilter ? (
+        (() => {
+          const venture = ventures.find((v) => v.id === ventureFilter)
+          if (!venture) return null
+          const timeline = venture.employeeTimeline || []
+          const sorted = [...timeline].sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))
+          const current = sorted[0]
+          return (
+            <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
+              <div className='flex items-center justify-between gap-3'>
+                <div>
+                  {current && (current.employeeCount > 0 || current.profitShare > 0) ? (
+                    <p className='text-lg font-semibold text-slate-900'>
+                      {current.employeeCount > 0 ? `${current.employeeCount} empleado(s)` : ''}
+                      {current.employeeCount > 0 && current.profitShare > 0 ? ' · ' : ''}
+                      {current.profitShare > 0 ? `${current.profitShare}% participación` : ''}
+                    </p>
+                  ) : (
+                    <p className='text-lg text-slate-400'>Sin empleados registrados</p>
+                  )}
+                  {sorted.length > 1 ? (
+                    <p className='mt-1 text-sm text-slate-500'>{sorted.length} cambio(s) en el tiempo</p>
+                  ) : null}
+                </div>
+                {canEdit ? (
+                  <button type='button' onClick={() => onEditVenture(venture)} className='rounded-full border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100'>Editar</button>
+                ) : null}
+              </div>
+            </div>
+          )
+        })()
+      ) : null}
     </section>
   )
 }
