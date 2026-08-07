@@ -2,7 +2,7 @@ import { MetricCard } from '../components/MetricCard'
 import { EmptyState } from '../components/EmptyState'
 import { formatMoney, calculateFixedCostTotal, FIXED_COST_FREQUENCIES } from '../models/appModel'
 
-export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVentureFilter, canEdit, onAddFixedCost, onEditFixedCost, onEditVenture }) {
+export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVentureFilter, dateFilter, onDateFilter, canEdit, onAddFixedCost, onEditFixedCost, onEditVenture }) {
   return (
     <section className='space-y-6'>
       <header>
@@ -11,16 +11,27 @@ export function FinanceView({ fixedCosts, stats, ventures, ventureFilter, onVent
         <p className='mt-2 text-sm text-slate-600'>Compara ingresos, costos fijos y desempeño para tomar mejores decisiones.</p>
       </header>
 
-      <select
-        value={ventureFilter}
-        onChange={(event) => onVentureFilter(event.target.value)}
-        className='rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none sm:max-w-xs'
-      >
-        <option value=''>Todos los emprendimientos</option>
-        {ventures.map((venture) => (
-          <option key={venture.id} value={venture.id}>{venture.name}</option>
-        ))}
-      </select>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+        <select
+          value={ventureFilter}
+          onChange={(event) => onVentureFilter(event.target.value)}
+          className='rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none sm:max-w-xs'
+        >
+          <option value=''>Todos los emprendimientos</option>
+          {ventures.map((venture) => (
+            <option key={venture.id} value={venture.id}>{venture.name}</option>
+          ))}
+        </select>
+        <select
+          value={dateFilter}
+          onChange={(event) => onDateFilter(event.target.value)}
+          className='rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none sm:max-w-xs'
+        >
+          <option value=''>Todo el tiempo</option>
+          <option value='year'>Último año</option>
+          <option value='month'>Último mes</option>
+        </select>
+      </div>
 
       <div className='flex flex-wrap gap-4'>
         <MetricCard title='Ingresos' value={formatMoney(stats.revenue)} accent='text-[#168467]' />

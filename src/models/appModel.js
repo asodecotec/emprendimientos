@@ -160,7 +160,7 @@ export function calculateFixedCostTotal(fixedCost) {
 
   const diffMs = end.getTime() - start.getTime()
   const diffDays = diffMs / (1000 * 60 * 60 * 24)
-  const intervals = Math.floor(diffDays / intervalDays)
+  const intervals = Math.floor(diffDays / intervalDays) + 1
 
   return intervals * cost
 }

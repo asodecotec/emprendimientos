@@ -37,18 +37,18 @@ export function Sidebar({ currentView, onNavigate, open, onClose, userEmail, onL
           ))}
         </nav>
 
-        {userEmail ? (
-          <div className='mt-4 border-t border-white/20 pt-4'>
-            <p className='truncate text-xs text-blue-200'>{userEmail}</p>
-            <button
-              type='button'
-              onClick={onLogout}
-              className='mt-3 w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-blue-100 transition hover:bg-white/10'
-            >
-              Cerrar sesión
-            </button>
-          </div>
-        ) : null}
+
+        <div className='mt-4 border-t border-white/20 pt-4'>
+          <p className='truncate text-xs text-blue-200'>{userEmail || "Invitado"}</p>
+          <button
+            type='button'
+            onClick={onLogout}
+            className='mt-3 w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-blue-100 transition hover:bg-white/10'
+          >
+            Cerrar sesión
+          </button>
+        </div>
+
       </aside>
     </>
   )

@@ -3,7 +3,7 @@ export function AuthPage({ isGuest, authError, loadingAuth, onGoogleSignIn, onCo
     <div className='min-h-screen bg-[#f6f3eb] px-4 py-12 sm:px-6 lg:px-8'>
       <div className='mx-auto max-w-3xl space-y-8 rounded-[32px] border border-slate-200 bg-white/95 p-8 shadow-lg'>
         <div className='mx-auto max-w-xl space-y-3 text-center'>
-          <h1 className='text-3xl font-semibold text-[#082d72]'>Bienvenido a Asodeco</h1>
+          <h1 className='text-3xl font-semibold text-[#082d72]'>Bienvenido a ASODECO</h1>
           <p className='text-sm text-slate-500'>Accede con tu cuenta de Google o entra como invitado para solo ver la información.</p>
         </div>
 

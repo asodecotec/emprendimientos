@@ -21,6 +21,8 @@ function App() {
     setSearch,
     ventureFilter,
     setVentureFilter,
+    dateFilter,
+    setDateFilter,
     modal,
     openModal,
     closeModal,
@@ -317,10 +319,10 @@ function App() {
     if (view === 'products') return <ProductsView products={products} filteredProducts={filteredProducts} search={search} onSearch={setSearch} materials={materialsWithStock} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'product') handleOpenProductModal(item) }} onDelete={(type, item) => { if (type === 'product' && canDelete) removeProduct(item.id) }} />
     if (view === 'inventory') return <InventoryView materials={materialsWithStock} filteredMaterials={filteredMaterialsWithStock} search={search} onSearch={setSearch} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'material') handleOpenMaterialModal(item) }} onDelete={(type, item) => { if (type === 'material' && canDelete) removeMaterial(item.id) }} />
     if (view === 'purchases') return <PurchasesView purchases={purchases} filteredPurchases={filteredPurchases} materials={materials} ventures={ventures} ventureFilter={ventureFilter} recent={recent} search={search} onSearch={setSearch} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={handleOpenPurchaseModal} onDelete={(type, item) => { if (type === 'purchase' && canDelete) removePurchase(item.id) }} />
-    if (view === 'finance') return <FinanceView fixedCosts={filteredFixedCosts} stats={financeStats} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} canEdit={canEdit} onAddFixedCost={() => handleOpenFixedCostModal()} onEditFixedCost={(item) => handleOpenFixedCostModal(null, item)} onEditVenture={(venture) => handleOpenVentureModal(venture)} />
+    if (view === 'finance') return <FinanceView fixedCosts={filteredFixedCosts} stats={financeStats} ventures={ventures} ventureFilter={ventureFilter} onVentureFilter={setVentureFilter} dateFilter={dateFilter} onDateFilter={setDateFilter} canEdit={canEdit} onAddFixedCost={() => handleOpenFixedCostModal()} onEditFixedCost={(item) => handleOpenFixedCostModal(null, item)} onEditVenture={(venture) => handleOpenVentureModal(venture)} />
     if (view === 'sales') return <SalesView sales={filteredSales} ventures={ventures} products={products} ventureFilter={ventureFilter} recent={recent} search={search} onSearch={setSearch} onVentureFilter={setVentureFilter} canEdit={canEdit} onOpenModal={(type, item) => { if (type === 'sale') handleOpenSaleModal(item) }} onDelete={(type, item) => { if (type === 'sale' && canDelete) removeSale(item.id) }} onTogglePaid={(sale) => updateSale(sale.id, { ...sale, paid: !sale.paid })} />
-    return <DashboardView stats={stats} ventureBreakdown={ventureBreakdown} onNavigate={setView} />
-  }, [financeStats, ventureBreakdown, filteredFixedCosts, filteredMaterialsWithStock, filteredProducts, filteredPurchases, filteredSales, filteredVentures, handleNavigateToVentureSection, handleOpenFixedCostModal, handleOpenMaterialModal, handleOpenProductModal, handleOpenPurchaseModal, handleOpenSaleModal, handleOpenVentureModal, materials, materialsWithStock, products, purchases, recent, removeFixedCost, removeMaterial, removeProduct, removePurchase, removeSale, removeVenture, search, setSearch, setView, setVentureFilter, stats, updateSale, ventures, ventureFilter, view, canEdit, canDelete])
+    return <DashboardView stats={stats} ventureBreakdown={ventureBreakdown} dateFilter={dateFilter} onDateFilter={setDateFilter} onNavigate={setView} />
+  }, [financeStats, ventureBreakdown, filteredFixedCosts, filteredMaterialsWithStock, filteredProducts, filteredPurchases, filteredSales, filteredVentures, handleNavigateToVentureSection, handleOpenFixedCostModal, handleOpenMaterialModal, handleOpenProductModal, handleOpenPurchaseModal, handleOpenSaleModal, handleOpenVentureModal, materials, materialsWithStock, products, purchases, recent, removeFixedCost, removeMaterial, removeProduct, removePurchase, removeSale, removeVenture, search, setSearch, setView, setVentureFilter, setDateFilter, stats, updateSale, ventures, ventureFilter, dateFilter, view, canEdit, canDelete])
 
   const renderModalContent = () => {
     if (!modal) return null
