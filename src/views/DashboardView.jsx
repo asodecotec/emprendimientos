@@ -9,7 +9,7 @@ const SEGMENTS = [
   { key: 'costOfSale', label: 'Costo de venta', color: 'bg-amber-400' },
 ]
 
-export function DashboardView({ stats, ventureBreakdown }) {
+export function DashboardView({ stats, ventureBreakdown, dateFilter, onDateFilter }) {
   const [focusedId, setFocusedId] = useState(null)
 
   const focused = focusedId ? ventureBreakdown.find((v) => v.id === focusedId) : null
@@ -23,6 +23,7 @@ export function DashboardView({ stats, ventureBreakdown }) {
         <p className='mt-2 text-sm text-slate-600'>Monitorea emprendimientos, inventario, costos y ventas desde una vista organizada.</p>
       </header>
 
+     
       <div className='flex flex-wrap gap-4'>
         <MetricCard title='Emprendimientos' value={stats.ventures} />
         <MetricCard title='Materiales' value={stats.materials} />
@@ -33,8 +34,22 @@ export function DashboardView({ stats, ventureBreakdown }) {
 
       {ventureBreakdown.length > 0 ? (
         <div className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
-          <h2 className='mb-2 text-lg font-semibold text-slate-900'>Ingresos por emprendimiento</h2>
-          <p className='mb-6 text-sm text-slate-500'>Desglose de costos y ganancia neta. Haz clic en una barra para enfocarla.</p>
+          <div className='flex'>
+            <div>
+              <h2 className='mb-2 text-lg font-semibold text-slate-900'>Ingresos por emprendimiento</h2>
+              <p className='mb-2 text-sm text-slate-500'>Desglose de costos y ganancia neta. Haz clic en una barra para enfocarla.</p>
+            </div>
+            <select
+              value={dateFilter}
+              onChange={(event) => onDateFilter(event.target.value)}
+              className='rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none sm:max-w-xs h-11 my-auto mx-10'
+            >
+              <option value=''>Todo el tiempo</option>
+              <option value='year'>Último año</option>
+              <option value='month'>Último mes</option>
+            </select>
+          </div>
+
 
           <div className='flex gap-3 mb-4'>
             {SEGMENTS.map(({ key, label, color }) => (

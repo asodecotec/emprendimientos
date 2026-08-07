@@ -56,7 +56,9 @@ export function useAuth() {
   }, [])
 
   const handleError = (error) => {
-    const message = error?.message || 'Ocurrió un error inesperado'
+    let message = error?.message?.replace("Firebase: ", "") || 'Ocurrió un error inesperado'
+    if (message === "Error (auth/popup-closed-by-user)." || message === "Error (auth/cancelled-popup-request).")
+      message = "Error: El popup para iniciar sesión con Google fue cerrado"
     setAuthError(message)
     return message
   }

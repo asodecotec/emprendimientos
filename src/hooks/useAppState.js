@@ -11,7 +11,7 @@ import {
   where,
 } from 'firebase/firestore'
 import { db } from '../../firebase'
-import { createId, normalize, getProductCost, calculateFixedCostTotal, getActiveEmployeeEntry } from '../models/appModel'
+import { createId, normalize, getProductCost, calculateFixedCostTotal, getActiveEmployeeEntry, FIXED_COST_FREQUENCIES } from '../models/appModel'
 
 const COLLECTIONS = ['ventures', 'materials', 'purchases', 'products', 'sales']
 
@@ -34,6 +34,7 @@ export function useAppState() {
   const [purchases, setPurchases] = useState([])
   const [search, setSearch] = useState('')
   const [ventureFilter, setVentureFilter] = useState('')
+  const [dateFilter, setDateFilter] = useState('')
   const [modal, setModal] = useState(null)
   const [activeItem, setActiveItem] = useState(null)
   const [draft, setDraft] = useState('')
@@ -552,12 +553,62 @@ export function useAppState() {
   )
 
   const filteredFixedCosts = useMemo(() => {
-    if (!ventureFilter) return sortByRecent(fixedCosts, recent)
-    return sortByRecent(fixedCosts.filter((item) => item.ventureId === ventureFilter), recent)
-  }, [fixedCosts, ventureFilter, recent])
+    const isActiveInRange = (item) => {
+      if (!dateFilter) return true
+      const start = item.startDate ? new Date(item.startDate) : null
+      const end = item.endDate ? new Date(item.endDate) : null
+      const now = new Date()
+      if (!start) return false
+      if (dateFilter === 'month') {
+        const monthAgo = new Date(now)
+        monthAgo.setMonth(monthAgo.getMonth() - 1)
+        return start <= now && (!end || end >= monthAgo)
+      }
+      if (dateFilter === 'year') {
+        const yearAgo = new Date(now)
+        yearAgo.setFullYear(yearAgo.getFullYear() - 1)
+        return start <= now && (!end || end >= yearAgo)
+      }
+      return true
+    }
+    const filtered = fixedCosts.filter((item) => {
+      if (ventureFilter && item.ventureId !== ventureFilter) return false
+      if (!isActiveInRange(item)) return false
+      return true
+    }).map((item) => {
+      if (dateFilter !== 'month') return item
+      const freq = FIXED_COST_FREQUENCIES.find((f) => f.value === item.frequency)
+      const intervalDays = freq?.days || 30
+      const monthsPerInterval = intervalDays / 30
+      return { ...item, cost: Number(item.cost || 0) / monthsPerInterval }
+    })
+    return sortByRecent(filtered, recent)
+  }, [fixedCosts, ventureFilter, dateFilter, recent])
 
   const financeStats = useMemo(() => {
-    const filtered = ventureFilter ? sales.filter((sale) => sale.ventureId === ventureFilter) : sales
+    const isDateInRange = (dateStr) => {
+      if (!dateFilter) return true
+      if (!dateStr) return false
+      const date = new Date(dateStr)
+      const now = new Date()
+      if (dateFilter === 'month') {
+        const monthAgo = new Date(now)
+        monthAgo.setMonth(monthAgo.getMonth() - 1)
+        return date >= monthAgo
+      }
+      if (dateFilter === 'year') {
+        const yearAgo = new Date(now)
+        yearAgo.setFullYear(yearAgo.getFullYear() - 1)
+        return date >= yearAgo
+      }
+      return true
+    }
+
+    const filtered = sales.filter((sale) => {
+      if (ventureFilter && sale.ventureId !== ventureFilter) return false
+      if (!isDateInRange(sale.date)) return false
+      return true
+    })
 
     const saleCosts = filtered.reduce((sum, sale) => {
       const productsInSale = Object.entries(sale.selectedProducts || {})
@@ -623,11 +674,33 @@ export function useAppState() {
       totalEmployees,
       payPerEmployee,
     }
-  }, [sales, products, materialsWithStock, fixedCosts, ventures, ventureFilter, filteredFixedCosts])
+  }, [sales, products, materialsWithStock, fixedCosts, ventures, ventureFilter, dateFilter, filteredFixedCosts])
 
   const ventureBreakdown = useMemo(() => {
+    const isDateInRange = (dateStr) => {
+      if (!dateFilter) return true
+      if (!dateStr) return false
+      const date = new Date(dateStr)
+      const now = new Date()
+      if (dateFilter === 'month') {
+        const monthAgo = new Date(now)
+        monthAgo.setMonth(monthAgo.getMonth() - 1)
+        return date >= monthAgo
+      }
+      if (dateFilter === 'year') {
+        const yearAgo = new Date(now)
+        yearAgo.setFullYear(yearAgo.getFullYear() - 1)
+        return date >= yearAgo
+      }
+      return true
+    }
+
     return ventures.map((venture) => {
-      const ventureSales = sales.filter((sale) => sale.ventureId === venture.id)
+      const ventureSales = sales.filter((sale) => {
+        if (sale.ventureId !== venture.id) return false
+        if (!isDateInRange(sale.date)) return false
+        return true
+      })
       const revenue = ventureSales.reduce((sum, sale) => sum + Number(sale.amount || 0), 0)
       const shippingCosts = ventureSales.reduce((sum, sale) => sum + Number(sale.shippingCost || 0), 0)
 
@@ -639,7 +712,7 @@ export function useAppState() {
         }, 0)
       }, 0)
 
-      const ventureFixedCosts = fixedCosts
+      const ventureFixedCosts = filteredFixedCosts
         .filter((fc) => fc.ventureId === venture.id)
         .reduce((sum, item) => sum + calculateFixedCostTotal(item), 0)
 
@@ -673,7 +746,7 @@ export function useAppState() {
         netProfit,
       }
     })
-  }, [ventures, sales, products, materialsWithStock, fixedCosts])
+  }, [ventures, sales, products, materialsWithStock, filteredFixedCosts, dateFilter])
 
   const stats = useMemo(() => {
     const revenue = sales.reduce((sum, item) => sum + Number(item.amount || 0), 0)
@@ -696,6 +769,8 @@ export function useAppState() {
     setSearch,
     ventureFilter,
     setVentureFilter,
+    dateFilter,
+    setDateFilter,
     modal,
     openModal,
     closeModal,
